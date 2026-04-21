@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/*
+ * Met Liefde Facturen — globale styling.
+ * Tailwind v4 gebruikt CSS-variabelen in @theme voor token-definities.
+ * Kleuren en typografie houden we rustig en hoogwaardig (zie DEEL 4, Ontwerp-instructies).
+ */
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, "Times New Roman", serif;
+
+  --color-background: oklch(0.99 0.005 95);
+  --color-foreground: oklch(0.2 0.01 90);
+  --color-muted: oklch(0.95 0.01 90);
+  --color-muted-foreground: oklch(0.45 0.01 90);
+  --color-border: oklch(0.9 0.01 90);
+
+  --color-status-binnengekomen: oklch(0.7 0.01 90);
+  --color-status-te-beoordelen: oklch(0.75 0.15 80);
+  --color-status-goedgekeurd: oklch(0.7 0.15 150);
+  --color-status-klaar: oklch(0.65 0.15 240);
+  --color-status-voldaan: oklch(0.5 0.15 150);
+  --color-status-afgewezen: oklch(0.6 0.2 25);
+  --color-status-betwist: oklch(0.7 0.18 50);
+  --color-status-on-hold: oklch(0.65 0.15 290);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+}
