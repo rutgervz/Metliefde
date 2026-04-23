@@ -1,0 +1,39 @@
+# Met Liefde Facturen — Supabase config
+# Deze config is nodig voor de Supabase GitHub-integratie.
+# Zie: https://supabase.com/docs/guides/local-development/cli/config
+
+# project_id is een lokaal label. De GitHub-integratie koppelt zelf
+# aan het Supabase-project via het dashboard.
+project_id = "metliefde-facturen"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
