@@ -639,7 +639,7 @@ insert into categories (entity_id, name, sort_order) values
 
 -- Entiteit-specifieke categorieën voor Apple Tree Beheer BV (holding)
 insert into categories (entity_id, name, sort_order)
-select id, cat, sort_order from entities,
+select entities.id, c.cat, c.sort_order from entities,
     (values
         ('Management fee',              10),
         ('Deelnemingen',                20),
@@ -650,7 +650,7 @@ where entities.name = 'Apple Tree Beheer BV';
 
 -- Entiteit-specifieke categorieën voor Indigo Ventures BV
 insert into categories (entity_id, name, sort_order)
-select id, cat, sort_order from entities,
+select entities.id, c.cat, c.sort_order from entities,
     (values
         ('Investeringen',               10),
         ('Advies en consultancy',       20),
@@ -661,7 +661,7 @@ where entities.name = 'Indigo Ventures BV';
 
 -- Entiteit-specifieke categorieën voor Stichting Us Wente i.o.
 insert into categories (entity_id, name, sort_order)
-select id, cat, sort_order from entities,
+select entities.id, c.cat, c.sort_order from entities,
     (values
         ('Oprichtingskosten',           10),
         ('Retreats en gasten',          20),
@@ -672,7 +672,7 @@ where entities.name = 'Stichting Us Wente i.o.';
 
 -- Entiteit-specifieke categorieën voor Gezin privé
 insert into categories (entity_id, name, sort_order)
-select id, cat, sort_order from entities,
+select entities.id, c.cat, c.sort_order from entities,
     (values
         ('Boodschappen',                10),
         ('Kinderen en school',          20),
