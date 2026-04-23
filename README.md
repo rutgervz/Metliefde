@@ -6,73 +6,90 @@ Het volledige plan staat in `docs/pakket-compleet.md`. Dit bestand is de lopende
 
 ## Status
 
-Fase 1 in opbouw. Zie `docs/pakket-compleet.md`, deel 4, voor de 14 stappen. Dit moment wordt stap 1 (project en Supabase) opgeleverd.
+Fase 1 in opbouw. Zie `docs/pakket-compleet.md`, deel 4, voor de 14 stappen.
+
+- Stap 1 Project en Supabase — klaar
+- Stap 2 Auth-laag — klaar, wacht op jouw Google- en Supabase-instellingen
+- Stap 3 Layout en navigatie — volgt
 
 ## Ontwikkelstijl
 
-Alle wijzigingen gaan via commits naar feature-branches. Vercel bouwt automatisch een preview bij elke commit. Rutger test de preview op zijn telefoon en geeft feedback. Er is geen lokale ontwikkelomgeving en geen terminal-werk bij de gebruiker.
+Alle wijzigingen gaan via commits naar feature-branches en worden daarna in `main` gemerged. Vercel bouwt automatisch bij elke push naar `main`. Er is geen lokale ontwikkelomgeving en geen terminal-werk bij de gebruiker.
 
-## Eerste keer opzetten (voor Rutger, op de telefoon)
+## Stap 2 afmaken: Google OAuth activeren
 
-Deze stappen zet je één keer achter elkaar. Houd een scherm met notities ernaast — je hebt straks wat sleutels nodig.
+De code staat er. Om daadwerkelijk in te kunnen loggen moet je drie dingen eenmalig instellen. Neem er tien minuten voor op je telefoon of laptop.
 
-### 1. Supabase-project aanmaken
+### 1. Google Cloud project en OAuth-client aanmaken
 
-Ga naar `supabase.com`, log in, klik op **New project**. Kies een naam zoals `metliefde-facturen`, kies regio **Frankfurt (eu-central-1)** of **Amsterdam (eu-west)**, verzin een databasewachtwoord en bewaar het in je wachtwoordkluis. Laat het project 2-3 minuten klaarzetten.
+a. Ga naar `console.cloud.google.com`. Log in.
+b. Maak een nieuw project aan. Naam: `Met Liefde Facturen`. Koppel aan je persoonlijke of werk-organisatie, dat maakt niet uit.
+c. Open in de zoekbalk **OAuth consent screen** en configureer:
+   - User type: **External**.
+   - App name: `Met Liefde Facturen`.
+   - User support email: jouw e-mailadres.
+   - Developer contact: jouw e-mailadres.
+   - Scopes: laat leeg (we voegen in Stap 5 Gmail en Drive toe).
+   - Test users: voeg je eigen en Annelie's Gmail-adres toe.
+   - Publish status mag op **Testing** blijven in fase 1.
+d. Open **Credentials → Create credentials → OAuth client ID**:
+   - Application type: **Web application**.
+   - Name: `Supabase Auth`.
+   - Authorized redirect URIs, voeg toe:
+     - `https://<jouw-supabase-project-ref>.supabase.co/auth/v1/callback`
+     - Je Supabase-project-ref staat in de URL van je Supabase-dashboard; het is het subdomein voor `.supabase.co`.
+   - Klik **Create**. Kopieer **Client ID** en **Client Secret**.
 
-### 2. Migratie draaien
+### 2. Google-provider aanzetten in Supabase
 
-Open in je Supabase-project de **SQL Editor** via het linkermenu. Maak een nieuwe query. Kopieer de volledige inhoud van `supabase/migrations/001_init.sql` uit deze repo en plak in de editor. Klik **Run**. Je ziet onderaan een groene melding. Negeer eventuele waarschuwingen over `users`-tabel (die maken we hieronder).
+a. Open Supabase dashboard → je project → **Authentication → Providers**.
+b. Zoek **Google** in de lijst en klik aan.
+c. Zet Enable op **aan**.
+d. Plak de Client ID en Client Secret uit stap 1d.
+e. Klik **Save**.
 
-### 3. Google OAuth provider aanzetten in Supabase
+### 3. Vercel env vars invullen
 
-Ga in Supabase naar **Authentication → Providers**. Zoek **Google** in de lijst en klik aan. Laat deze tab open staan, we komen hierop terug in stap 2 van de opbouw (auth-laag) wanneer we het Google-project hebben.
-
-### 4. API-sleutels kopiëren
-
-Ga naar **Project Settings → API**. Kopieer:
-
-- `Project URL` — dit wordt `NEXT_PUBLIC_SUPABASE_URL`
-- `anon` key onder **Project API keys** — dit wordt `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `service_role` key — dit wordt `SUPABASE_SERVICE_ROLE_KEY`
-
-Sla deze drie even op in een notitie.
-
-### 5. Anthropic API-sleutel aanmaken
-
-Ga naar `console.anthropic.com`, log in, maak een API-key aan. Kopieer de waarde. Deze wordt `ANTHROPIC_API_KEY`. (Nog niet actief in stap 1, maar alvast bewaren.)
-
-### 6. Vercel-project koppelen aan deze GitHub-repo
-
-Ga naar `vercel.com`, log in met GitHub. Klik **Add New → Project**. Kies de repo `rutgervz/metliefde`. Vercel herkent Next.js automatisch. Klik door naar **Environment Variables** en plak de waarden uit stap 4 en 5:
+Ga in Vercel naar het project → **Settings → Environment Variables**. Vul:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL        = <waarde uit stap 4>
-NEXT_PUBLIC_SUPABASE_ANON_KEY   = <waarde uit stap 4>
-SUPABASE_SERVICE_ROLE_KEY       = <waarde uit stap 4>
-ANTHROPIC_API_KEY               = <waarde uit stap 5>
-ALLOWED_EMAILS                  = <jouw-adres>,<annelies-adres>
+NEXT_PUBLIC_SUPABASE_URL        = <je Supabase Project URL>
+NEXT_PUBLIC_SUPABASE_ANON_KEY   = <je Supabase anon key>
+SUPABASE_SERVICE_ROLE_KEY       = <je Supabase service_role key>
+ALLOWED_EMAILS                  = <jouw@gmail.com>,<annelie@gmail.com>
 ```
 
-De Google-variabelen komen in stap 5 van de opbouw, die kunnen nu leeg blijven.
+Laat `ANTHROPIC_API_KEY` en de `GOOGLE_*` velden nog leeg tot Stap 5 en 6.
 
-Klik **Deploy**. Vercel bouwt en geeft je een URL. Open die op je telefoon: je ziet de tijdelijke landingspagina van de app.
+Klik **Save**. Ga naar **Deployments** en triggere een **Redeploy** van de laatste deployment, of push een lege commit. De nieuwe env vars worden pas actief na een nieuwe deploy.
 
-### 7. Eerste aanmelding voorbereiden (stap 2 van de opbouw)
+### 4. Testen
 
-Dit doen we pas wanneer de auth-laag live staat. Instructies volgen dan.
+Open de Vercel-URL op je telefoon. Je zou nu:
+
+1. Automatisch worden doorgestuurd naar `/login`.
+2. Een Google-knop zien.
+3. Na klikken: Google-flow, terug naar de app.
+4. Ingelogd: de homepage toont je naam rechts bovenin en je rol is `eigenaar`.
+
+Als een verkeerd adres inlogt: redirect naar `/login?error=niet_toegestaan` met de juiste melding.
 
 ## Structuur van de repo
 
 ```
-app/                  — Next.js App Router (pages, layouts, routes)
-lib/                  — helpers, queries, mutations, extractors
-components/           — UI-componenten (shadcn/ui, eigen)
-public/               — statische assets
-supabase/migrations/  — SQL-migraties, versiebeheer voor het schema
-docs/                 — plan en referentie-documenten
+app/                      — Next.js App Router
+  login/                  — login-pagina en server actions
+  auth/callback/          — OAuth-callback met whitelist-check en user-sync
+  auth/signout/           — uitlog-route
+lib/
+  supabase/               — SSR client-wrappers (browser, server, service, middleware)
+  auth/                   — whitelist-helper
+middleware.ts             — auth-protectie voor alle private routes
+public/                   — statische assets (PWA-iconen komen later)
+supabase/migrations/      — versie-beheerd database-schema
+docs/                     — plan en referentie-documenten
 ```
 
-## Volgende stappen
+## Volgende stap
 
-Zie `docs/pakket-compleet.md` deel 4. Nadat Rutger stap 1 hierboven heeft afgerond op Vercel en Supabase, gaat Claude verder met stap 2 (Google OAuth + whitelisting) in de codebase.
+Zodra je Stap 2 werkend hebt (de login-flow hierboven doorloopt): geef het door. Dan begin ik met Stap 3 (mobile-first layout met bottom-navigatie, sferen-filter, PWA-manifest).
