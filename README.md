@@ -36,8 +36,7 @@ d. Open **Credentials → Create credentials → OAuth client ID**:
    - Application type: **Web application**.
    - Name: `Supabase Auth`.
    - Authorized redirect URIs, voeg toe:
-     - `https://<jouw-supabase-project-ref>.supabase.co/auth/v1/callback`
-     - Je Supabase-project-ref staat in de URL van je Supabase-dashboard; het is het subdomein voor `.supabase.co`.
+     - `https://cxfhdvvmazdlsytgvnct.supabase.co/auth/v1/callback`
    - Klik **Create**. Kopieer **Client ID** en **Client Secret**.
 
 ### 2. Google-provider aanzetten in Supabase
