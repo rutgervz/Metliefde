@@ -47,6 +47,17 @@ c. Zet Enable op **aan**.
 d. Plak de Client ID en Client Secret uit stap 1d.
 e. Klik **Save**.
 
+### 2b. URL Configuration in Supabase
+
+Zonder dit stuurt Supabase je na het inloggen door naar `localhost:3000`.
+
+a. Supabase dashboard → **Authentication → URL Configuration**.
+b. **Site URL**: `https://metliefde.vercel.app`
+c. **Redirect URLs** (Add URL per stuk):
+   - `https://metliefde.vercel.app/**`
+   - `https://*.vercel.app/**`
+d. **Save**.
+
 ### 3. Vercel env vars invullen
 
 Ga in Vercel naar het project → **Settings → Environment Variables**. Vul:
