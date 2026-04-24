@@ -8,6 +8,7 @@ import {
   setMailAccountStatus,
   updateMailAccount,
 } from "@/lib/mutations/mail-accounts";
+import { syncMailboxById } from "@/lib/google/sync";
 
 async function ensureOwner() {
   const profile = await getCurrentUserProfile();
@@ -71,4 +72,13 @@ export async function disconnectMailAccount(formData: FormData) {
 
 export async function startMailboxConnect() {
   redirect("/api/mailbox/connect");
+}
+
+export async function triggerMailboxSync(formData: FormData) {
+  await ensureOwner();
+  const { mailAccountId } = idOnlySchema.parse({
+    mailAccountId: formData.get("mailAccountId"),
+  });
+  await syncMailboxById(mailAccountId);
+  revalidatePath("/instellingen/mailboxen");
 }

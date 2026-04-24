@@ -132,7 +132,42 @@ Save → **Redeploy** voor activatie.
 
 Je kunt zoveel mailboxen verbinden als je wil. Pauzeren, hervatten en ontkoppelen kan per mailbox.
 
-Het daadwerkelijk ophalen van mails uit deze mailboxen komt in Stap 5b (Vercel cron-job + extractie-jobs).
+## Stap 5b: Gmail-sync activeren
+
+De code voor het ophalen van mails staat live. Twee laatste handelingen:
+
+### 1. Gmail-label aanmaken in elke verbonden mailbox
+
+In Gmail (op laptop of telefoon):
+
+a. Maak een label `Facturen/Inbox` (de schuine streep maakt automatisch een sublabel onder `Facturen`).
+b. Stel filters in die binnenkomende factuur-mails dit label geven. Bijvoorbeeld: `from:facturen@vattenfall.nl OR subject:factuur`. Filter → kies "Toepassen op label: Facturen/Inbox".
+c. Pas eventueel het label achteraf toe op bestaande mails om te testen.
+
+### 2. CRON_SECRET genereren
+
+a. Verzin of genereer een willekeurige string van minimaal 32 tekens. Bijvoorbeeld via `openssl rand -hex 32` op de terminal, of een wachtwoord-generator.
+b. Vercel → Settings → Environment Variables → Add:
+   ```
+   CRON_SECRET = <jouw-random-string>
+   ```
+   Bij **Environments** Production aanvinken.
+c. Save → **Redeploy** zodat de waarde actief wordt.
+
+Vercel verzorgt zelf het meegeven van deze secret als `Authorization: Bearer ...`-header bij de geplande cron-aanroep.
+
+### 3. Eerste sync handmatig testen
+
+a. Open `metliefde.vercel.app/instellingen/mailboxen`.
+b. Klik bij een verbonden mailbox op **Sync nu**.
+c. Even wachten — de pagina ververst en toont `Laatst opgehaald` met de tijd.
+d. Bij `Last error` (rood vakje) staat eventuele foutmelding.
+
+### 4. Vercel cron schedule
+
+`vercel.json` bevat het schedule `*/15 * * * *` (elke 15 minuten). Vercel pakt dit automatisch op zodra je naar Pro plan upgradet. Op Hobby plan staan crons beperkt tot dagelijks; gebruik dan de **Sync nu**-knop voor handmatige tests, of een externe poller.
+
+Het ophalen plaatst voor elk nieuw bericht een job met `kind=extract_invoice` in de queue. Het verwerken van die jobs (de feitelijke extractie) komt in Stap 6.
 
 Als een verkeerd adres inlogt: redirect naar `/login?error=niet_toegestaan` met de juiste melding.
 

@@ -1,5 +1,14 @@
 import Link from "next/link";
-import { ArrowLeft, Plus, Mail, AlertCircle, Pause, Play, Unlink } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Mail,
+  AlertCircle,
+  Pause,
+  Play,
+  Unlink,
+  RefreshCw,
+} from "lucide-react";
 import { listMailAccounts } from "@/lib/queries/mail-accounts";
 import { listActiveEntities } from "@/lib/queries/entities";
 import { getCurrentUserProfile } from "@/lib/queries/users";
@@ -9,6 +18,7 @@ import {
   resumeMailAccount,
   setMailAccountDefaultEntity,
   startMailboxConnect,
+  triggerMailboxSync,
 } from "./actions";
 import type { MailAccountStatus } from "@/lib/types";
 
@@ -185,16 +195,36 @@ export default async function MailboxenPage({
 
                   <div className="flex flex-wrap gap-2">
                     {box.status === "verbonden" ? (
-                      <form action={pauseMailAccount}>
-                        <input type="hidden" name="mailAccountId" value={box.id} />
-                        <button
-                          type="submit"
-                          className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--color-border)] px-2.5 py-1.5 text-xs text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-muted)] hover:text-[color:var(--color-foreground)]"
-                        >
-                          <Pause className="h-3.5 w-3.5" />
-                          Pauzeer
-                        </button>
-                      </form>
+                      <>
+                        <form action={triggerMailboxSync}>
+                          <input
+                            type="hidden"
+                            name="mailAccountId"
+                            value={box.id}
+                          />
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--color-primary)] px-2.5 py-1.5 text-xs text-[color:var(--color-primary)] hover:bg-[color:var(--color-primary-soft)]"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" />
+                            Sync nu
+                          </button>
+                        </form>
+                        <form action={pauseMailAccount}>
+                          <input
+                            type="hidden"
+                            name="mailAccountId"
+                            value={box.id}
+                          />
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--color-border)] px-2.5 py-1.5 text-xs text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-muted)] hover:text-[color:var(--color-foreground)]"
+                          >
+                            <Pause className="h-3.5 w-3.5" />
+                            Pauzeer
+                          </button>
+                        </form>
+                      </>
                     ) : box.status === "gepauzeerd" ? (
                       <form action={resumeMailAccount}>
                         <input type="hidden" name="mailAccountId" value={box.id} />
@@ -204,6 +234,15 @@ export default async function MailboxenPage({
                         >
                           <Play className="h-3.5 w-3.5" />
                           Hervat
+                        </button>
+                      </form>
+                    ) : box.status === "herauth_nodig" ? (
+                      <form action={startMailboxConnect}>
+                        <button
+                          type="submit"
+                          className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--color-primary)] px-2.5 py-1.5 text-xs text-[color:var(--color-primary-foreground)] hover:bg-[color:var(--color-primary-hover)]"
+                        >
+                          Heraut
                         </button>
                       </form>
                     ) : null}
@@ -229,10 +268,14 @@ export default async function MailboxenPage({
                     dateStyle: "short",
                     timeStyle: "short",
                   })}
+                  {" - "}label{" "}
+                  <code className="rounded bg-[color:var(--color-muted)] px-1">
+                    {box.gmail_label}
+                  </code>
                 </p>
               ) : (
                 <p className="text-xs text-[color:var(--color-muted-foreground)]">
-                  Nog niet gesynced. Gmail-polling start in Stap 5b.
+                  Nog niet gesynced. Klik "Sync nu" om handmatig op te halen.
                 </p>
               )}
             </li>

@@ -63,3 +63,78 @@ export async function setMailAccountStatus(
 ): Promise<void> {
   await updateMailAccount({ id, status });
 }
+
+/**
+ * Schrijf een nieuwe access_token + expiry weg na een refresh.
+ * Refresh-token blijft hetzelfde.
+ */
+export async function persistRefreshedTokens(
+  id: string,
+  tokens: { access_token: string; expiry_date: number | null | undefined },
+): Promise<void> {
+  const admin = createServiceClient();
+  const { error } = await admin
+    .from("mail_accounts")
+    .update({
+      access_token: tokens.access_token,
+      token_expires_at: tokens.expiry_date
+        ? new Date(tokens.expiry_date).toISOString()
+        : null,
+    })
+    .eq("id", id);
+  if (error) {
+    throw new Error(`persistRefreshedTokens: ${error.message}`);
+  }
+}
+
+/**
+ * Markeer dat een sync net heeft gedraaid en wis de last_error.
+ */
+export async function markMailboxSynced(
+  id: string,
+  opts: { historyId?: string | null } = {},
+): Promise<void> {
+  const admin = createServiceClient();
+  const { error } = await admin
+    .from("mail_accounts")
+    .update({
+      last_synced_at: new Date().toISOString(),
+      last_error: null,
+      ...(opts.historyId ? { gmail_history_id: opts.historyId } : {}),
+    })
+    .eq("id", id);
+  if (error) {
+    throw new Error(`markMailboxSynced: ${error.message}`);
+  }
+}
+
+export async function markMailboxError(
+  id: string,
+  message: string,
+): Promise<void> {
+  const admin = createServiceClient();
+  const { error } = await admin
+    .from("mail_accounts")
+    .update({ last_error: message.slice(0, 1000) })
+    .eq("id", id);
+  if (error) {
+    throw new Error(`markMailboxError: ${error.message}`);
+  }
+}
+
+export async function markMailboxNeedsReauth(
+  id: string,
+  message: string,
+): Promise<void> {
+  const admin = createServiceClient();
+  const { error } = await admin
+    .from("mail_accounts")
+    .update({
+      status: "herauth_nodig",
+      last_error: message.slice(0, 1000),
+    })
+    .eq("id", id);
+  if (error) {
+    throw new Error(`markMailboxNeedsReauth: ${error.message}`);
+  }
+}
