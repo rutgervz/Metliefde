@@ -1,29 +1,45 @@
-import { SectionPlaceholder } from "@/components/section-placeholder";
+import Link from "next/link";
+import { Mail, Building2, Tags, Users, Store, ChevronRight } from "lucide-react";
 
-const TABS = [
+const SECTIONS = [
   {
-    title: "Gebruikers",
-    description:
-      "Rutger en Annelie als eigenaren. Een boekhouder of kijker kan later via de gebruikers-tab worden toegevoegd.",
-  },
-  {
-    title: "Entiteiten",
-    description:
-      "Per entiteit: naam, BTW-status, kleur, drempel voor goedkeuring, dual approval. Nu read-only.",
-  },
-  {
-    title: "Categorieen",
-    description: "Algemene set en entiteit-specifieke uitbreidingen. Nu read-only.",
-  },
-  {
-    title: "Leveranciers",
-    description:
-      "Lijst met leervoorkeuren per leverancier. Vult zich automatisch in Stap 6 wanneer extractie loopt.",
-  },
-  {
+    href: "/instellingen/mailboxen",
     title: "Mailboxen",
     description:
-      "Verbind in Stap 5 een of meerdere Gmail-mailboxen. Per mailbox een default-entiteit. Bijvoorbeeld factuur@uswente.org koppelt automatisch aan Stichting Us Wente.",
+      "Verbind Gmail-mailboxen waar facturen binnenkomen. Per mailbox een default-entiteit.",
+    icon: Mail,
+    available: true,
+  },
+  {
+    href: "/instellingen",
+    title: "Gebruikers",
+    description:
+      "Rutger en Annelie als eigenaren. Boekhouder of kijker toevoegen kan later.",
+    icon: Users,
+    available: false,
+  },
+  {
+    href: "/instellingen",
+    title: "Entiteiten",
+    description:
+      "Naam, BTW-status, kleur, drempel voor goedkeuring, dual approval.",
+    icon: Building2,
+    available: false,
+  },
+  {
+    href: "/instellingen",
+    title: "Categorieen",
+    description: "Algemene set en entiteit-specifieke uitbreidingen.",
+    icon: Tags,
+    available: false,
+  },
+  {
+    href: "/instellingen",
+    title: "Leveranciers",
+    description:
+      "Lijst met leervoorkeuren per leverancier. Vult zich automatisch.",
+    icon: Store,
+    available: false,
   },
 ];
 
@@ -33,29 +49,49 @@ export default function InstellingenPage() {
       <header className="space-y-1">
         <h1 className="text-3xl">Instellingen</h1>
         <p className="text-sm text-[color:var(--color-muted-foreground)]">
-          Vijf onderdelen, in volgende stappen werkend gemaakt.
+          Vijf onderdelen. Mailboxen werkt al; de rest activeren we in
+          opvolgende stappen.
         </p>
       </header>
 
       <ul className="space-y-3">
-        {TABS.map((tab) => (
-          <li
-            key={tab.title}
-            className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5"
-          >
-            <h2 className="text-lg">{tab.title}</h2>
-            <p className="mt-1 text-sm text-[color:var(--color-muted-foreground)]">
-              {tab.description}
-            </p>
-          </li>
-        ))}
-      </ul>
+        {SECTIONS.map((section) => {
+          const Icon = section.icon;
+          const card = (
+            <div className="flex items-start gap-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
+              <Icon className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--color-muted-foreground)]" />
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-2 text-base">
+                  {section.title}
+                  {!section.available ? (
+                    <span className="rounded-full bg-[color:var(--color-muted)] px-2 py-0.5 text-xs text-[color:var(--color-muted-foreground)]">
+                      Volgt
+                    </span>
+                  ) : null}
+                </p>
+                <p className="mt-1 text-sm text-[color:var(--color-muted-foreground)]">
+                  {section.description}
+                </p>
+              </div>
+              {section.available ? (
+                <ChevronRight className="mt-1 h-5 w-5 shrink-0 text-[color:var(--color-muted-foreground)]" />
+              ) : null}
+            </div>
+          );
 
-      <SectionPlaceholder
-        title="Wat hier komt"
-        description="De tabs worden ingedeeld in een instellingen-shell met edit-formulieren, sleutels en koppelingsstatus."
-        upcoming={[]}
-      />
+          return (
+            <li key={section.title}>
+              {section.available ? (
+                <Link href={section.href} className="block">
+                  {card}
+                </Link>
+              ) : (
+                card
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

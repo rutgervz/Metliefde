@@ -82,6 +82,58 @@ Open de Vercel-URL op je telefoon. Je zou nu:
 3. Na klikken: Google-flow, terug naar de app.
 4. Ingelogd: de homepage toont je naam rechts bovenin en je rol is `eigenaar`.
 
+## Stap 5a afmaken: mailboxen verbinden
+
+Voor het verbinden van Gmail-mailboxen moet de bestaande OAuth-client uitgebreid en moet Gmail API aan staan in Google Cloud.
+
+### 1. Gmail API enablen
+
+a. Google Cloud Console → linkermenu → **APIs & Services → Library**.
+b. Zoek **Gmail API** → klik aan → **Enable**.
+
+### 2. Scopes toevoegen aan OAuth consent screen
+
+a. Linkermenu → **APIs & Services → OAuth consent screen** → **Edit App** → klik door tot **Scopes**.
+b. **Add or remove scopes** → vink aan:
+   - `https://www.googleapis.com/auth/gmail.readonly`
+   - `https://www.googleapis.com/auth/gmail.modify`
+c. **Update** → **Save and continue**.
+d. Bij testing-mode hoef je verder niets meer te doen. Bij gepubliceerd-mode moet Google deze scopes goedkeuren (niet nodig voor fase 1).
+
+### 3. Extra redirect URI toevoegen
+
+a. Linkermenu → **APIs & Services → Credentials** → klik je OAuth client open (`Supabase Auth`).
+b. Bij **Authorized redirect URIs** klik **Add URI** en voeg toe:
+   ```
+   https://metliefde.vercel.app/api/mailbox/callback
+   ```
+c. **Save**.
+
+### 4. Vercel env vars
+
+Voeg toe in **Settings → Environment Variables**:
+
+```
+GOOGLE_CLIENT_ID         = <client id van OAuth client>
+GOOGLE_CLIENT_SECRET     = <client secret van OAuth client>
+NEXT_PUBLIC_APP_URL      = https://metliefde.vercel.app
+```
+
+Save → **Redeploy** voor activatie.
+
+### 5. Eerste mailbox verbinden
+
+1. Open `metliefde.vercel.app/instellingen/mailboxen`.
+2. Klik **Verbind mailbox**.
+3. Google-scherm verschijnt; kies het account dat de facturen ontvangt (bijvoorbeeld `factuur@uswente.org`).
+4. Geef toestemming voor Gmail readonly + modify.
+5. Je komt terug op de mailboxen-pagina met een bevestiging.
+6. Stel via de dropdown de **default-entiteit** in (bijvoorbeeld Stichting Us Wente i.o.) en klik **Opslaan**.
+
+Je kunt zoveel mailboxen verbinden als je wil. Pauzeren, hervatten en ontkoppelen kan per mailbox.
+
+Het daadwerkelijk ophalen van mails uit deze mailboxen komt in Stap 5b (Vercel cron-job + extractie-jobs).
+
 Als een verkeerd adres inlogt: redirect naar `/login?error=niet_toegestaan` met de juiste melding.
 
 ## Structuur van de repo
