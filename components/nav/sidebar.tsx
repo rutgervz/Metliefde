@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "./nav-items";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { Logo } from "@/components/brand/logo";
 import type { ThemeMode } from "@/lib/theme";
 
 export function Sidebar({
@@ -19,7 +20,7 @@ export function Sidebar({
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-[color:var(--color-border)] bg-[color:var(--color-surface)] md:flex">
       <div className="px-6 pb-6 pt-8">
-        <p className="font-serif text-2xl tracking-tight">Met Liefde</p>
+        <Logo className="h-10 w-auto" />
       </div>
 
       <nav aria-label="Hoofdnavigatie" className="flex-1 px-3">
@@ -35,7 +36,7 @@ export function Sidebar({
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                     active
-                      ? "bg-[color:var(--color-muted)] text-[color:var(--color-foreground)]"
+                      ? "bg-[color:var(--color-primary-soft)] text-[color:var(--color-primary)]"
                       : "text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-muted)] hover:text-[color:var(--color-foreground)]",
                   )}
                 >

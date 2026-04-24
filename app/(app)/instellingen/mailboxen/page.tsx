@@ -91,7 +91,7 @@ export default async function MailboxenPage({
         <form action={startMailboxConnect}>
           <button
             type="submit"
-            className="inline-flex items-center gap-2 rounded-lg border border-[color:var(--color-foreground)] bg-[color:var(--color-foreground)] px-4 py-2 text-sm text-[color:var(--color-background)] transition hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm text-[color:var(--color-primary-foreground)] transition hover:bg-[color:var(--color-primary-hover)]"
           >
             <Plus className="h-4 w-4" />
             Verbind mailbox

@@ -24,7 +24,7 @@ export function BottomNav() {
                 className={cn(
                   "flex flex-col items-center gap-1 px-2 py-2 text-xs transition-colors",
                   active
-                    ? "text-[color:var(--color-foreground)]"
+                    ? "text-[color:var(--color-primary)]"
                     : "text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]",
                 )}
               >
