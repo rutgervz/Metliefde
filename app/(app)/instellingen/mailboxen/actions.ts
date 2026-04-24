@@ -2,7 +2,6 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/queries/users";
 import {
   setMailAccountStatus,
@@ -68,10 +67,6 @@ export async function disconnectMailAccount(formData: FormData) {
   });
   await setMailAccountStatus(mailAccountId, "ontkoppeld");
   revalidatePath("/instellingen/mailboxen");
-}
-
-export async function startMailboxConnect() {
-  redirect("/api/mailbox/connect");
 }
 
 export async function triggerMailboxSync(formData: FormData) {

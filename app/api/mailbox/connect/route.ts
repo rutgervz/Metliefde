@@ -8,8 +8,17 @@ import {
   createOAuthClient,
   generateState,
 } from "@/lib/google/oauth";
+import { checkMailboxConfig } from "@/lib/google/config";
 
 export async function GET(request: NextRequest) {
+  const settingsUrl = (params: Record<string, string>) => {
+    const url = new URL("/instellingen/mailboxen", request.url);
+    for (const [k, v] of Object.entries(params)) {
+      url.searchParams.set(k, v);
+    }
+    return url;
+  };
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -21,29 +30,43 @@ export async function GET(request: NextRequest) {
 
   const profile = await getCurrentUserProfile();
   if (profile?.role !== "eigenaar") {
-    const url = new URL("/instellingen", request.url);
-    url.searchParams.set("error", "alleen_eigenaar");
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(settingsUrl({ error: "alleen_eigenaar" }));
   }
 
-  const state = generateState();
-  const cookieStore = await cookies();
-  cookieStore.set(MAILBOX_STATE_COOKIE, state, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    maxAge: 60 * 10, // 10 minuten geldig
-    path: "/",
-  });
+  const config = checkMailboxConfig();
+  if (!config.ready) {
+    return NextResponse.redirect(
+      settingsUrl({ error: "config_ontbreekt", missing: config.missing.join(",") }),
+    );
+  }
 
-  const client = createOAuthClient();
-  const authUrl = client.generateAuthUrl({
-    access_type: "offline",
-    prompt: "consent",
-    scope: [...GMAIL_SCOPES],
-    state,
-    include_granted_scopes: true,
-  });
+  let authUrl: string;
+  try {
+    const state = generateState();
+    const cookieStore = await cookies();
+    cookieStore.set(MAILBOX_STATE_COOKIE, state, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: true,
+      maxAge: 60 * 10,
+      path: "/",
+    });
+
+    const client = createOAuthClient();
+    authUrl = client.generateAuthUrl({
+      access_type: "offline",
+      prompt: "consent",
+      scope: [...GMAIL_SCOPES],
+      state,
+      include_granted_scopes: true,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("mailbox connect setup faalde", message);
+    return NextResponse.redirect(
+      settingsUrl({ error: "setup", details: message.slice(0, 120) }),
+    );
+  }
 
   return NextResponse.redirect(authUrl);
 }

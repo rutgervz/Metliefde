@@ -12,12 +12,12 @@ import {
 import { listMailAccounts } from "@/lib/queries/mail-accounts";
 import { listActiveEntities } from "@/lib/queries/entities";
 import { getCurrentUserProfile } from "@/lib/queries/users";
+import { checkMailboxConfig } from "@/lib/google/config";
 import {
   disconnectMailAccount,
   pauseMailAccount,
   resumeMailAccount,
   setMailAccountDefaultEntity,
-  startMailboxConnect,
   triggerMailboxSync,
 } from "./actions";
 import type { MailAccountStatus } from "@/lib/types";
@@ -46,12 +46,19 @@ const ERROR_MESSAGES: Record<string, string> = {
   geen_email: "Het Google-account had geen email beschikbaar.",
   opslaan: "Mailbox kon niet worden opgeslagen.",
   alleen_eigenaar: "Alleen eigenaars kunnen mailboxen verbinden.",
+  config_ontbreekt: "Server-configuratie is incompleet.",
+  setup: "Initialisatie van de OAuth-flow mislukte.",
 };
 
 export default async function MailboxenPage({
   searchParams,
 }: {
-  searchParams: Promise<{ verbonden?: string; error?: string }>;
+  searchParams: Promise<{
+    verbonden?: string;
+    error?: string;
+    missing?: string;
+    details?: string;
+  }>;
 }) {
   const params = await searchParams;
   const profile = await getCurrentUserProfile();
@@ -62,8 +69,14 @@ export default async function MailboxenPage({
     listActiveEntities(),
   ]);
 
+  const config = checkMailboxConfig();
+
   const errorKey = params.error;
   const errorMessage = errorKey ? ERROR_MESSAGES[errorKey] : null;
+  const errorDetails =
+    errorKey === "config_ontbreekt" && params.missing
+      ? `Ontbrekend: ${params.missing.split(",").join(", ")}`
+      : params.details ?? null;
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6 md:px-8 md:py-10">
@@ -91,22 +104,36 @@ export default async function MailboxenPage({
       ) : null}
 
       {errorMessage ? (
-        <p className="flex items-start gap-2 rounded-lg border border-[color:var(--color-status-afgewezen)] bg-[color:var(--color-muted)] p-3 text-sm text-[color:var(--color-status-afgewezen)]">
+        <div className="flex items-start gap-2 rounded-lg border border-[color:var(--color-status-afgewezen)] bg-[color:var(--color-muted)] p-3 text-sm text-[color:var(--color-status-afgewezen)]">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          {errorMessage}
-        </p>
+          <div className="space-y-1">
+            <p>{errorMessage}</p>
+            {errorDetails ? (
+              <p className="text-xs opacity-90">{errorDetails}</p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {!config.ready && isOwner ? (
+        <div className="rounded-lg border border-[color:var(--color-status-betwist)] bg-[color:var(--color-muted)] p-4 text-sm">
+          <p className="font-medium">Server-configuratie incompleet</p>
+          <p className="mt-1 text-[color:var(--color-muted-foreground)]">
+            Vercel mist {config.missing.join(", ")}. Stel deze in onder
+            Project Settings → Environment Variables en redeploy. Zie de
+            README, sectie "Stap 5a afmaken".
+          </p>
+        </div>
       ) : null}
 
       {isOwner ? (
-        <form action={startMailboxConnect}>
-          <button
-            type="submit"
-            className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm text-[color:var(--color-primary-foreground)] transition hover:bg-[color:var(--color-primary-hover)]"
-          >
-            <Plus className="h-4 w-4" />
-            Verbind mailbox
-          </button>
-        </form>
+        <a
+          href="/api/mailbox/connect"
+          className="inline-flex w-fit items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm text-[color:var(--color-primary-foreground)] transition hover:bg-[color:var(--color-primary-hover)]"
+        >
+          <Plus className="h-4 w-4" />
+          Verbind mailbox
+        </a>
       ) : (
         <p className="text-sm text-[color:var(--color-muted-foreground)]">
           Alleen eigenaars kunnen mailboxen verbinden.
@@ -237,14 +264,12 @@ export default async function MailboxenPage({
                         </button>
                       </form>
                     ) : box.status === "herauth_nodig" ? (
-                      <form action={startMailboxConnect}>
-                        <button
-                          type="submit"
-                          className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--color-primary)] px-2.5 py-1.5 text-xs text-[color:var(--color-primary-foreground)] hover:bg-[color:var(--color-primary-hover)]"
-                        >
-                          Heraut
-                        </button>
-                      </form>
+                      <a
+                        href="/api/mailbox/connect"
+                        className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--color-primary)] px-2.5 py-1.5 text-xs text-[color:var(--color-primary-foreground)] hover:bg-[color:var(--color-primary-hover)]"
+                      >
+                        Heraut
+                      </a>
                     ) : null}
 
                     <form action={disconnectMailAccount}>
