@@ -58,7 +58,7 @@ export default async function EntiteitenPage() {
               {items.map((entity) => (
                 <li
                   key={entity.id}
-                  className="flex items-center gap-3 rounded-xl border border-[color:var(--color-border)] bg-white px-4 py-3"
+                  className="flex items-center gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-3"
                 >
                   <span
                     aria-hidden="true"

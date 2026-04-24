@@ -11,7 +11,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Hoofdnavigatie"
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-[color:var(--color-border)] bg-white pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-[color:var(--color-border)] bg-[color:var(--color-surface)] pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul className="grid grid-cols-4">
         {NAV_ITEMS.map((item) => {

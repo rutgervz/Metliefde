@@ -34,7 +34,7 @@ export function SphereFilter({
               "shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors",
               isActive
                 ? "border-[color:var(--color-foreground)] bg-[color:var(--color-foreground)] text-white"
-                : "border-[color:var(--color-border)] bg-white text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]",
+                : "border-[color:var(--color-border)] bg-[color:var(--color-surface)] text-[color:var(--color-muted-foreground)] hover:text-[color:var(--color-foreground)]",
             )}
           >
             <span className="flex items-center gap-2">

@@ -2,8 +2,9 @@
 
 /*
  * Met Liefde — globale styling.
- * Tailwind v4 gebruikt CSS-variabelen in @theme voor token-definities.
- * Kleuren en typografie houden we rustig en hoogwaardig (zie DEEL 4, Ontwerp-instructies).
+ * Tailwind v4 met CSS-variabelen voor design-tokens. De variabelen
+ * worden bij data-theme="dark" overschreven voor donkere modus.
+ * Kleuren en typografie houden we rustig en hoogwaardig.
  */
 
 @theme {
@@ -11,6 +12,7 @@
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, "Times New Roman", serif;
 
   --color-background: oklch(0.99 0.005 95);
+  --color-surface: #ffffff;
   --color-foreground: oklch(0.2 0.01 90);
   --color-muted: oklch(0.95 0.01 90);
   --color-muted-foreground: oklch(0.45 0.01 90);
@@ -26,9 +28,32 @@
   --color-status-on-hold: oklch(0.65 0.15 290);
 }
 
+/* Donker thema. Active wanneer html data-theme="dark" heeft. */
+:root[data-theme="dark"] {
+  --color-background: oklch(0.16 0.008 80);
+  --color-surface: oklch(0.21 0.01 80);
+  --color-foreground: oklch(0.94 0.005 90);
+  --color-muted: oklch(0.24 0.008 80);
+  --color-muted-foreground: oklch(0.68 0.01 90);
+  --color-border: oklch(0.32 0.008 80);
+
+  --color-status-binnengekomen: oklch(0.6 0.01 90);
+  --color-status-te-beoordelen: oklch(0.7 0.15 80);
+  --color-status-goedgekeurd: oklch(0.7 0.15 150);
+  --color-status-klaar: oklch(0.7 0.15 240);
+  --color-status-voldaan: oklch(0.6 0.15 150);
+  --color-status-afgewezen: oklch(0.7 0.2 25);
+  --color-status-betwist: oklch(0.75 0.18 50);
+  --color-status-on-hold: oklch(0.7 0.15 290);
+}
+
 @layer base {
   :root {
     color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
   }
 
   html,

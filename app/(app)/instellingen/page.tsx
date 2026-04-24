@@ -41,7 +41,7 @@ export default function InstellingenPage() {
         {TABS.map((tab) => (
           <li
             key={tab.title}
-            className="rounded-xl border border-[color:var(--color-border)] bg-white p-5"
+            className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5"
           >
             <h2 className="text-lg">{tab.title}</h2>
             <p className="mt-1 text-sm text-[color:var(--color-muted-foreground)]">

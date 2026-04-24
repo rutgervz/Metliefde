@@ -1,4 +1,5 @@
 import { SphereFilter, parseSphere } from "@/components/nav/sphere-filter";
+import { InboxSearch } from "@/components/nav/inbox-search";
 import { SectionPlaceholder } from "@/components/section-placeholder";
 
 const KANBAN_COLUMNS = [
@@ -13,10 +14,11 @@ const KANBAN_COLUMNS = [
 export default async function InboxPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sfeer?: string }>;
+  searchParams: Promise<{ sfeer?: string; q?: string }>;
 }) {
   const params = await searchParams;
   const sphere = parseSphere(params.sfeer);
+  const query = params.q?.trim() ?? "";
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-6 md:px-8 md:py-10">
@@ -27,7 +29,10 @@ export default async function InboxPage({
         </p>
       </header>
 
-      <SphereFilter basePath="/inbox" active={sphere} />
+      <div className="space-y-3">
+        <InboxSearch initialValue={query} />
+        <SphereFilter basePath="/inbox" active={sphere} />
+      </div>
 
       <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
         <div className="grid min-w-max grid-flow-col auto-cols-[16rem] gap-3 md:auto-cols-[18rem]">
@@ -42,7 +47,7 @@ export default async function InboxPage({
                   0
                 </span>
               </div>
-              <p className="rounded-md border border-dashed border-[color:var(--color-border)] bg-white p-4 text-center text-xs text-[color:var(--color-muted-foreground)]">
+              <p className="rounded-md border border-dashed border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4 text-center text-xs text-[color:var(--color-muted-foreground)]">
                 Nog leeg
               </p>
             </div>

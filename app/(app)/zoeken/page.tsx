@@ -11,7 +11,7 @@ export default function ZoekenPage() {
         </p>
       </header>
 
-      <div className="flex items-center gap-2 rounded-xl border border-[color:var(--color-border)] bg-white px-4 py-3">
+      <div className="flex items-center gap-2 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-3">
         <Search className="h-4 w-4 text-[color:var(--color-muted-foreground)]" />
         <input
           type="search"

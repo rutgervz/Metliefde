@@ -35,7 +35,7 @@ export default async function LoginPage({
         </p>
       </header>
 
-      <section className="space-y-4 rounded-xl border border-[color:var(--color-border)] bg-white p-6">
+      <section className="space-y-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6">
         <p className="text-sm text-[color:var(--color-muted-foreground)]">
           Meld je aan met je Google-account. Alleen toegestane adressen krijgen toegang.
         </p>
@@ -43,7 +43,7 @@ export default async function LoginPage({
         <form action={signInWithGoogle}>
           <button
             type="submit"
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-white px-4 py-3 text-sm font-medium text-[color:var(--color-foreground)] transition hover:bg-[color:var(--color-muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-foreground)]"
+            className="flex w-full items-center justify-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-3 text-sm font-medium text-[color:var(--color-foreground)] transition hover:bg-[color:var(--color-muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-foreground)]"
           >
             <GoogleIcon />
             <span>Inloggen met Google</span>

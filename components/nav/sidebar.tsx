@@ -4,16 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "./nav-items";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import type { ThemeMode } from "@/lib/theme";
 
 export function Sidebar({
   displayName,
+  themeMode,
 }: {
   displayName: string;
+  themeMode: ThemeMode;
 }) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-[color:var(--color-border)] bg-white md:flex">
+    <aside className="hidden w-60 shrink-0 flex-col border-r border-[color:var(--color-border)] bg-[color:var(--color-surface)] md:flex">
       <div className="px-6 pb-6 pt-8">
         <p className="font-serif text-2xl tracking-tight">Met Liefde</p>
       </div>
@@ -44,18 +48,21 @@ export function Sidebar({
         </ul>
       </nav>
 
-      <div className="border-t border-[color:var(--color-border)] px-4 py-4">
-        <p className="truncate text-sm text-[color:var(--color-foreground)]">
-          {displayName}
-        </p>
-        <form action="/auth/signout" method="post" className="mt-1">
-          <button
-            type="submit"
-            className="text-xs text-[color:var(--color-muted-foreground)] underline-offset-4 hover:underline"
-          >
-            Uitloggen
-          </button>
-        </form>
+      <div className="space-y-2 border-t border-[color:var(--color-border)] px-4 py-4">
+        <ThemeToggle mode={themeMode} />
+        <div>
+          <p className="truncate text-sm text-[color:var(--color-foreground)]">
+            {displayName}
+          </p>
+          <form action="/auth/signout" method="post" className="mt-1">
+            <button
+              type="submit"
+              className="text-xs text-[color:var(--color-muted-foreground)] underline-offset-4 hover:underline"
+            >
+              Uitloggen
+            </button>
+          </form>
+        </div>
       </div>
     </aside>
   );

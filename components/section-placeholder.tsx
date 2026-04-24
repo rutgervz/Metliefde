@@ -12,7 +12,7 @@ export function SectionPlaceholder({
   upcoming: string[];
 }) {
   return (
-    <section className="rounded-xl border border-dashed border-[color:var(--color-border)] bg-white p-6">
+    <section className="rounded-xl border border-dashed border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6">
       <h2 className="mb-2 text-2xl">{title}</h2>
       <p className="mb-4 text-sm text-[color:var(--color-muted-foreground)]">
         {description}
