@@ -1,13 +1,11 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserProfile } from "@/lib/queries/users";
 import { Sidebar } from "@/components/nav/sidebar";
 import { BottomNav } from "@/components/nav/bottom-nav";
 import { MobileHeader } from "@/components/nav/mobile-header";
 import { parseThemeMode, THEME_COOKIE } from "@/lib/theme";
-import type { UserRole } from "@/lib/database.types";
-
-type ProfileRow = { display_name: string; role: UserRole };
 
 export default async function AppLayout({
   children,
@@ -22,13 +20,7 @@ export default async function AppLayout({
     redirect("/login");
   }
 
-  const profileResult = await supabase
-    .from("users")
-    .select("display_name, role")
-    .eq("id", user.id)
-    .maybeSingle();
-  const profile = profileResult.data as ProfileRow | null;
-
+  const profile = await getCurrentUserProfile();
   const displayName =
     profile?.display_name ?? user.user_metadata.full_name ?? user.email ?? "Onbekend";
 

@@ -1,41 +1,17 @@
-import { createClient } from "@/lib/supabase/server";
+import { listEntitiesGroupedBySphere } from "@/lib/queries/entities";
 import { SectionPlaceholder } from "@/components/section-placeholder";
+import type { OwnerSphere } from "@/lib/types";
 
-type EntityRow = {
-  id: string;
-  name: string;
-  legal_name: string | null;
-  owner_sphere: "rutger" | "annelie" | "gezamenlijk";
-  color: string;
-  is_vat_deductible: boolean;
-  active: boolean;
-};
-
-const SPHERE_LABEL: Record<EntityRow["owner_sphere"], string> = {
+const SPHERE_LABEL: Record<OwnerSphere, string> = {
   annelie: "Annelie",
   rutger: "Rutger",
   gezamenlijk: "Samen",
 };
 
+const ORDER: OwnerSphere[] = ["annelie", "rutger", "gezamenlijk"];
+
 export default async function EntiteitenPage() {
-  const supabase = await createClient();
-  const result = await supabase
-    .from("entities")
-    .select("id, name, legal_name, owner_sphere, color, is_vat_deductible, active")
-    .eq("active", true)
-    .order("sort_order", { ascending: true });
-
-  const entities = (result.data as EntityRow[] | null) ?? [];
-
-  const grouped = entities.reduce<Record<EntityRow["owner_sphere"], EntityRow[]>>(
-    (acc, entity) => {
-      acc[entity.owner_sphere].push(entity);
-      return acc;
-    },
-    { annelie: [], rutger: [], gezamenlijk: [] },
-  );
-
-  const order: EntityRow["owner_sphere"][] = ["annelie", "rutger", "gezamenlijk"];
+  const grouped = await listEntitiesGroupedBySphere();
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6 md:px-8 md:py-10">
@@ -46,7 +22,7 @@ export default async function EntiteitenPage() {
         </p>
       </header>
 
-      {order.map((sphere) => {
+      {ORDER.map((sphere) => {
         const items = grouped[sphere];
         if (items.length === 0) return null;
         return (
