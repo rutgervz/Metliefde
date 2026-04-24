@@ -1,17 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Logo voor inline gebruik in sidebar, mobiele header en login.
- *
- * Verwacht twee bestanden in /public, een voor elk thema:
- *   public/logo-uswente.png       — transparant, donkere strokes (light mode)
- *   public/logo-uswente-dark.png  — transparant, lichte strokes (dark mode)
- *
- * Wanneer de bestanden ontbreken valt de component terug op een
- * stijlvolle serif-tekst in het brand-rood.
+ * Het volledige Us Wente-logo in PNG, voor splash-momenten zoals de
+ * login-pagina. Switcht tussen lichte en donkere strokes via de
+ * data-theme dark variant. Gebruik voor inline app-chrome de
+ * Wordmark-component in plaats van dit logo.
  */
 
 const LIGHT_SRC = "/logo-uswente.png";
@@ -19,39 +14,22 @@ const DARK_SRC = "/logo-uswente-dark.png";
 
 export function Logo({
   className,
-  alt = "Met Liefde",
+  alt = "Us Wente",
 }: {
   className?: string;
   alt?: string;
 }) {
-  const [imgFailed, setImgFailed] = useState(false);
-
-  if (imgFailed) {
-    return (
-      <span
-        className={cn(
-          "font-serif tracking-tight text-[color:var(--color-primary)]",
-          className,
-        )}
-      >
-        Met Liefde
-      </span>
-    );
-  }
-
   return (
     <>
       <img
         src={LIGHT_SRC}
         alt={alt}
-        onError={() => setImgFailed(true)}
-        className={cn("block h-auto select-none dark:hidden", className)}
+        className={cn("block h-auto w-auto select-none dark:hidden", className)}
       />
       <img
         src={DARK_SRC}
         alt={alt}
-        onError={() => setImgFailed(true)}
-        className={cn("hidden h-auto select-none dark:block", className)}
+        className={cn("hidden h-auto w-auto select-none dark:block", className)}
       />
     </>
   );

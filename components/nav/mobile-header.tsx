@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { Logo } from "@/components/brand/logo";
+import { Wordmark } from "@/components/brand/wordmark";
 import type { ThemeMode } from "@/lib/theme";
 
 export function MobileHeader({
@@ -13,7 +13,7 @@ export function MobileHeader({
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[color:var(--color-border)] bg-[color:var(--color-surface)]/90 px-4 py-3 backdrop-blur md:hidden">
       <Link href="/inbox" className="flex items-center">
-        <Logo className="h-7 w-auto" />
+        <Wordmark size="md" />
       </Link>
       <div className="flex items-center gap-2 text-sm">
         <ThemeToggle mode={themeMode} className="px-1.5" />

@@ -28,23 +28,14 @@ export default async function LoginPage({
   const errorMessage = params.error ? ERROR_MESSAGES[params.error] : null;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-6 py-16">
-      <header className="flex flex-col items-center gap-4">
-        <Logo className="h-32 w-auto" />
-        <p className="text-base text-[color:var(--color-muted-foreground)]">
-          Gedeeld factuurbeheer voor Rutger en Annelie.
-        </p>
-      </header>
+    <main className="flex min-h-dvh items-center justify-center px-6 py-12">
+      <div className="flex w-full max-w-sm flex-col items-center gap-12">
+        <Logo className="h-56 w-auto md:h-64" />
 
-      <section className="space-y-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-6">
-        <p className="text-sm text-[color:var(--color-muted-foreground)]">
-          Meld je aan met je Google-account. Alleen toegestane adressen krijgen toegang.
-        </p>
-
-        <form action={signInWithGoogle}>
+        <form action={signInWithGoogle} className="w-full">
           <button
             type="submit"
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-3 text-sm font-medium text-[color:var(--color-foreground)] transition hover:bg-[color:var(--color-muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-foreground)]"
+            className="flex w-full items-center justify-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-4 py-3 text-sm font-medium text-[color:var(--color-foreground)] transition hover:bg-[color:var(--color-muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
           >
             <GoogleIcon />
             <span>Inloggen met Google</span>
@@ -52,15 +43,15 @@ export default async function LoginPage({
         </form>
 
         {errorMessage ? (
-          <p className="rounded-md border border-[color:var(--color-status-afgewezen)] bg-[color:var(--color-muted)] p-3 text-sm text-[color:var(--color-status-afgewezen)]">
+          <p className="w-full rounded-md border border-[color:var(--color-status-afgewezen)] bg-[color:var(--color-muted)] p-3 text-sm text-[color:var(--color-status-afgewezen)]">
             {errorMessage}
           </p>
         ) : null}
-      </section>
 
-      <footer className="text-center text-xs text-[color:var(--color-muted-foreground)]">
-        Deze app werkt alleen op geautoriseerde accounts.
-      </footer>
+        <p className="text-center text-xs text-[color:var(--color-muted-foreground)]">
+          Alleen toegestane Google-accounts hebben toegang.
+        </p>
+      </div>
     </main>
   );
 }
