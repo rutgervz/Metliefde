@@ -1,4 +1,4 @@
-# Met Liefde Facturen
+# Met Liefde
 
 Gedeeld factuur- en abonnementenbeheer voor Rutger en Annelie. Next.js 15 PWA op Vercel, met Supabase als backend.
 
@@ -23,10 +23,10 @@ De code staat er. Om daadwerkelijk in te kunnen loggen moet je drie dingen eenma
 ### 1. Google Cloud project en OAuth-client aanmaken
 
 a. Ga naar `console.cloud.google.com`. Log in.
-b. Maak een nieuw project aan. Naam: `Met Liefde Facturen`. Koppel aan je persoonlijke of werk-organisatie, dat maakt niet uit.
+b. Maak een nieuw project aan. Naam: `Met Liefde`. Koppel aan je persoonlijke of werk-organisatie, dat maakt niet uit.
 c. Open in de zoekbalk **OAuth consent screen** en configureer:
    - User type: **External**.
-   - App name: `Met Liefde Facturen`.
+   - App name: `Met Liefde`.
    - User support email: jouw e-mailadres.
    - Developer contact: jouw e-mailadres.
    - Scopes: laat leeg (we voegen in Stap 5 Gmail en Drive toe).

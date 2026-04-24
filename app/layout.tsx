@@ -2,12 +2,12 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Met Liefde Facturen",
+  title: "Met Liefde",
   description: "Gedeeld factuur- en abonnementenbeheer voor Rutger en Annelie.",
-  applicationName: "Met Liefde Facturen",
+  applicationName: "Met Liefde",
   appleWebApp: {
     capable: true,
-    title: "Facturen",
+    title: "Met Liefde",
     statusBarStyle: "default",
   },
 };

@@ -29,10 +29,7 @@ export default async function LoginPage({
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-6 py-16">
       <header className="space-y-2 text-center">
-        <p className="text-sm uppercase tracking-widest text-[color:var(--color-muted-foreground)]">
-          Met Liefde
-        </p>
-        <h1 className="text-4xl">Facturen</h1>
+        <h1 className="text-4xl">Met Liefde</h1>
         <p className="text-base text-[color:var(--color-muted-foreground)]">
           Gedeeld factuurbeheer voor Rutger en Annelie.
         </p>

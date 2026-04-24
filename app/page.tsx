@@ -28,10 +28,7 @@ export default async function HomePage() {
     <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-6 px-6 py-12">
       <header className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-sm uppercase tracking-widest text-[color:var(--color-muted-foreground)]">
-            Met Liefde
-          </p>
-          <h1 className="text-4xl">Facturen</h1>
+          <h1 className="text-4xl">Met Liefde</h1>
         </div>
         <div className="flex flex-col items-end gap-1 text-right text-sm">
           <span className="text-[color:var(--color-foreground)]">{displayName}</span>

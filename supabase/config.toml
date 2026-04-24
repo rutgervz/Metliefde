@@ -1,10 +1,10 @@
-# Met Liefde Facturen — Supabase config
+# Met Liefde — Supabase config
 # Deze config is nodig voor de Supabase GitHub-integratie.
 # Zie: https://supabase.com/docs/guides/local-development/cli/config
 
 # project_id is een lokaal label. De GitHub-integratie koppelt zelf
 # aan het Supabase-project via het dashboard.
-project_id = "metliefde-facturen"
+project_id = "met-liefde"
 
 [api]
 enabled = true
