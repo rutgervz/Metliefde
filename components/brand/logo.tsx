@@ -7,15 +7,15 @@ import { cn } from "@/lib/utils";
  * Logo voor inline gebruik in sidebar, mobiele header en login.
  *
  * Verwacht twee bestanden in /public, een voor elk thema:
- *   public/logo-uswente.svg       — transparant, donkere strokes (light mode)
- *   public/logo-uswente-dark.svg  — transparant, lichte strokes (dark mode)
+ *   public/logo-uswente.png       — transparant, donkere strokes (light mode)
+ *   public/logo-uswente-dark.png  — transparant, lichte strokes (dark mode)
  *
  * Wanneer de bestanden ontbreken valt de component terug op een
  * stijlvolle serif-tekst in het brand-rood.
  */
 
-const LIGHT_SRC = "/logo-uswente.svg";
-const DARK_SRC = "/logo-uswente-dark.svg";
+const LIGHT_SRC = "/logo-uswente.png";
+const DARK_SRC = "/logo-uswente-dark.png";
 
 export function Logo({
   className,
