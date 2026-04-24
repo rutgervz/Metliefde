@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Met Liefde",
   description: "Gedeeld factuur- en abonnementenbeheer voor Rutger en Annelie.",
   applicationName: "Met Liefde",
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     title: "Met Liefde",
