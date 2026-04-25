@@ -20,6 +20,7 @@ import {
 import { EntityPicker } from "@/components/mailboxen/entity-picker";
 import { SyncButton } from "@/components/mailboxen/sync-button";
 import { ProcessJobsButton } from "@/components/mailboxen/process-jobs-button";
+import { RetagButton } from "@/components/mailboxen/retag-button";
 import type { MailAccountStatus } from "@/lib/types";
 
 const STATUS_LABEL: Record<MailAccountStatus, string> = {
@@ -135,7 +136,12 @@ export default async function MailboxenPage({
             <Plus className="h-4 w-4" />
             Verbind mailbox
           </a>
-          {mailboxes.length > 0 ? <ProcessJobsButton /> : null}
+          {mailboxes.length > 0 ? (
+            <>
+              <ProcessJobsButton />
+              <RetagButton />
+            </>
+          ) : null}
         </div>
       ) : (
         <p className="text-sm text-[color:var(--color-muted-foreground)]">

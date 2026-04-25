@@ -9,6 +9,7 @@ import {
 } from "@/lib/mutations/mail-accounts";
 import { syncMailboxById } from "@/lib/google/sync";
 import { processPendingJobs } from "@/lib/jobs/processor";
+import { retagInvoicesWithoutTags } from "@/lib/jobs/retag";
 
 async function ensureOwner() {
   const profile = await getCurrentUserProfile();
@@ -154,5 +155,24 @@ export async function processQueueNow() {
     failed,
     remaining,
     summary,
+  };
+}
+
+/**
+ * Loopt alle bestaande facturen langs die nog geen tags hebben en
+ * vraagt Haiku om opnieuw tags te suggesteren. Past alleen tags toe;
+ * andere velden blijven onaangeroerd.
+ */
+export async function retagExistingInvoicesAction() {
+  await ensureOwner();
+  const result = await retagInvoicesWithoutTags(25);
+  revalidatePath("/inbox");
+  return {
+    summary:
+      result.attempted === 0
+        ? "Alle facturen hebben al tags."
+        : `${result.ok} getagd${
+            result.failed > 0 ? `, ${result.failed} mislukt` : ""
+          }${result.skipped > 0 ? `, ${result.skipped} overgeslagen` : ""}.`,
   };
 }
