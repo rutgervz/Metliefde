@@ -159,11 +159,43 @@ async function processExtractInvoiceJob(job: JobRow): Promise<JobResult> {
   };
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Reset jobs die al langer dan 4 minuten op 'bezig' staan terug naar
+ * 'wachtend' zodat een gecrashte of getimeoute run ze niet voor altijd
+ * blokkeert.
+ */
+async function recoverStaleJobs(): Promise<number> {
+  const admin = createServiceClient();
+  const cutoff = new Date(Date.now() - 4 * 60 * 1000).toISOString();
+  const { data, error } = await admin
+    .from("jobs")
+    .update({
+      status: "wachtend",
+      started_at: null,
+      last_error: "Hervat na timeout van vorige run.",
+    })
+    .eq("status", "bezig")
+    .lt("started_at", cutoff)
+    .select("id");
+  if (error) {
+    console.error("recoverStaleJobs faalde", error);
+    return 0;
+  }
+  return data?.length ?? 0;
+}
+
 /**
  * Verwerkt een batch wachtende jobs. Elke job wordt op zichzelf
  * uitgevoerd en bijgewerkt; falen van een job blokkeert de rest niet.
+ * Tussen jobs een korte pauze om Anthropic-rate-limits te respecteren.
  */
-export async function processPendingJobs(maxJobs = 10): Promise<JobResult[]> {
+export async function processPendingJobs(maxJobs = 5): Promise<JobResult[]> {
+  await recoverStaleJobs();
+
   const admin = createServiceClient();
   const { data: jobs, error } = await admin
     .from("jobs")
@@ -176,7 +208,11 @@ export async function processPendingJobs(maxJobs = 10): Promise<JobResult[]> {
   if (error) throw new Error(error.message);
 
   const results: JobResult[] = [];
-  for (const job of jobs ?? []) {
+  for (const [index, job] of (jobs ?? []).entries()) {
+    if (index > 0) {
+      // Korte rate-limit-vriendelijke pauze tussen Haiku calls.
+      await sleep(2_000);
+    }
     await markJobRunning(job.id);
     const attempts = (job.attempts ?? 0) + 1;
     try {

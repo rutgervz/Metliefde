@@ -132,6 +132,44 @@ function preferredAttachment(
   return attachments[0] ?? null;
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Wrap een Haiku-call met retry op 429 rate-limit responses. Honoreert
+ * de retry-after header indien aanwezig, anders exponential backoff.
+ * Andere errors gaan direct door.
+ */
+async function callHaikuWithRetry(
+  client: Anthropic,
+  body: Anthropic.MessageCreateParamsNonStreaming,
+  maxAttempts = 4,
+): Promise<Anthropic.Message> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await client.messages.create(body);
+    } catch (err) {
+      lastError = err;
+      const isRateLimit =
+        err instanceof Anthropic.APIError && err.status === 429;
+      if (!isRateLimit || attempt === maxAttempts) {
+        throw err;
+      }
+      const retryAfterRaw = err.headers?.["retry-after"];
+      const retryAfterSeconds =
+        typeof retryAfterRaw === "string" ? Number(retryAfterRaw) : NaN;
+      const waitMs = Number.isFinite(retryAfterSeconds)
+        ? retryAfterSeconds * 1000
+        : Math.min(60_000, 4_000 * 2 ** (attempt - 1));
+      console.log(`Rate-limit getroffen, wacht ${waitMs}ms voor poging ${attempt + 1}`);
+      await sleep(waitMs);
+    }
+  }
+  throw lastError;
+}
+
 /**
  * Extraheert factuur-data uit een e-mail met Claude Haiku. Geeft een
  * gestructureerd object terug volgens extractionSchema, of null als
@@ -210,7 +248,7 @@ export async function extractInvoiceWithHaiku(
     }
   }
 
-  const response = await client.messages.create({
+  const response = await callHaikuWithRetry(client, {
     model: MODEL,
     max_tokens: 1024,
     system: SYSTEM_PROMPT,

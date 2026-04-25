@@ -122,18 +122,37 @@ export async function triggerMailboxSyncForId(mailAccountId: string) {
  */
 export async function processQueueNow() {
   await ensureOwner();
-  const results = await processPendingJobs(20);
+  const results = await processPendingJobs(5);
   revalidatePath("/instellingen/mailboxen");
   revalidatePath("/inbox");
+
   const created = results.filter((r) => r.status === "gereed").length;
   const failed = results.filter((r) => r.status === "mislukt").length;
+
+  // Tellen hoeveel er nog wachten zodat de gebruiker weet dat opnieuw klikken nodig is.
+  const admin = (await import("@/lib/supabase/service")).createServiceClient();
+  const { count } = await admin
+    .from("jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "wachtend");
+  const remaining = count ?? 0;
+
+  let summary: string;
+  if (results.length === 0 && remaining === 0) {
+    summary = "Geen wachtende jobs.";
+  } else {
+    const parts: string[] = [];
+    parts.push(`${created} verwerkt`);
+    if (failed > 0) parts.push(`${failed} mislukt`);
+    if (remaining > 0) parts.push(`${remaining} nog te doen`);
+    summary = parts.join(", ") + ".";
+  }
+
   return {
     processed: results.length,
     created,
     failed,
-    summary:
-      results.length === 0
-        ? "Geen wachtende jobs."
-        : `${created} verwerkt, ${failed} mislukt.`,
+    remaining,
+    summary,
   };
 }
