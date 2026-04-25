@@ -46,10 +46,15 @@ export async function linkTagToInvoice(
 ): Promise<void> {
   const parsed = linkSchema.parse(input);
   const admin = createServiceClient();
-  const { error } = await admin.from("invoice_tags").upsert({
-    invoice_id: parsed.invoiceId,
-    tag_id: parsed.tagId,
-  });
+  const { error } = await admin
+    .from("invoice_tags")
+    .upsert(
+      {
+        invoice_id: parsed.invoiceId,
+        tag_id: parsed.tagId,
+      },
+      { onConflict: "invoice_id,tag_id", ignoreDuplicates: true },
+    );
   if (error) {
     throw new Error(`linkTagToInvoice: ${error.message}`);
   }

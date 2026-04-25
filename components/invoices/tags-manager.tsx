@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Tag as TagIcon, X, Plus, Loader2 } from "lucide-react";
+import { Tag as TagIcon, X, Plus, Loader2, Sparkles } from "lucide-react";
 import {
   addTagToInvoiceAction,
   removeTagFromInvoiceAction,
@@ -9,6 +9,40 @@ import {
 import { cn } from "@/lib/utils";
 
 export type TagOption = { id: string; name: string; color: string };
+
+// Veelvoorkomende tags voor Nederlandse boekhouding plus categorieen.
+// Worden getoond als snel-toe-te-voegen suggesties boven de input.
+const SUGGESTED_TAG_NAMES = [
+  "Software",
+  "Telecom",
+  "Internet",
+  "Hosting",
+  "Domeinregistratie",
+  "Reis",
+  "Brandstof",
+  "Parkeren",
+  "Verzekering",
+  "Onderhoud",
+  "Kantoorartikelen",
+  "Eten en drinken",
+  "Representatie",
+  "Drukwerk",
+  "Boekhouding",
+  "Advies",
+  "Energie",
+  "Water",
+  "BTW aftrekbaar",
+  "BTW 21%",
+  "BTW 9%",
+  "BTW 0%",
+  "Investering",
+  "Terugkerend abonnement",
+  "Verzamelfactuur",
+  "Doorbelasten",
+  "Buitenland",
+  "Privé",
+  "Zakelijk",
+];
 
 export function TagsManager({
   invoiceId,
@@ -24,13 +58,16 @@ export function TagsManager({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const taken = useMemo(() => new Set(tags.map((t) => t.id)), [tags]);
+  const taken = useMemo(
+    () => new Set(tags.map((t) => t.name.toLowerCase())),
+    [tags],
+  );
   const trimmed = input.trim();
   const lower = trimmed.toLowerCase();
   const matches = useMemo(
     () =>
       available
-        .filter((t) => !taken.has(t.id))
+        .filter((t) => !taken.has(t.name.toLowerCase()))
         .filter((t) => (trimmed ? t.name.toLowerCase().includes(lower) : true))
         .slice(0, 6),
     [available, taken, trimmed, lower],
@@ -39,6 +76,13 @@ export function TagsManager({
     available.some((t) => t.name.toLowerCase() === lower) ||
     tags.some((t) => t.name.toLowerCase() === lower);
   const showCreate = trimmed.length > 0 && !exactExists;
+
+  // Suggesties: boekhoud-conventies en categorieen die nog niet
+  // toegevoegd zijn aan deze factuur.
+  const suggestions = useMemo(
+    () => SUGGESTED_TAG_NAMES.filter((name) => !taken.has(name.toLowerCase())),
+    [taken],
+  );
 
   function addByName(name: string) {
     const value = name.trim();
@@ -90,10 +134,33 @@ export function TagsManager({
 
   return (
     <div className="space-y-2">
+      {suggestions.length > 0 ? (
+        <div className="space-y-1.5">
+          <p className="flex items-center gap-1 text-xs text-[color:var(--color-muted-foreground)]">
+            <Sparkles className="h-3 w-3" />
+            Voorgestelde tags - klik om toe te voegen
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {suggestions.slice(0, 12).map((name) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => addByName(name)}
+                disabled={pending}
+                className="inline-flex items-center gap-1 rounded-full border border-dashed border-[color:var(--color-border)] bg-transparent px-2 py-0.5 text-xs text-[color:var(--color-muted-foreground)] hover:border-[color:var(--color-primary)] hover:bg-[color:var(--color-primary-soft)]/30 hover:text-[color:var(--color-primary)] disabled:opacity-60"
+              >
+                <Plus className="h-3 w-3" />
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-1.5">
         {tags.length === 0 ? (
           <span className="text-xs text-[color:var(--color-muted-foreground)]">
-            Nog geen tags.
+            Nog geen tags toegevoegd.
           </span>
         ) : (
           tags.map((t) => (
