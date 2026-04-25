@@ -6,6 +6,7 @@ import type { FetchedMessage } from "@/lib/google/gmail";
 import type { InvoiceInsert } from "@/lib/types";
 
 const NEEDS_REVIEW_THRESHOLD = 0.85;
+const DUAL_APPROVAL_AMOUNT_THRESHOLD = 500;
 
 function buildContentHash(input: {
   mailAccountId: string;
@@ -119,6 +120,26 @@ export async function createInvoiceFromExtraction(
 
   const needsReview = (ext.confidence ?? 0) < NEEDS_REVIEW_THRESHOLD;
 
+  // Bepaal of dubbele goedkeuring nodig is op basis van de entiteit en
+  // het bedrag. Boven de drempel sowieso.
+  let requiresApproval = false;
+  if (input.defaultEntityId) {
+    const entity = await admin
+      .from("entities")
+      .select("default_requires_dual_approval")
+      .eq("id", input.defaultEntityId)
+      .maybeSingle();
+    if (entity.data?.default_requires_dual_approval) {
+      requiresApproval = true;
+    }
+  }
+  if (
+    typeof ext.amount_gross === "number" &&
+    ext.amount_gross >= DUAL_APPROVAL_AMOUNT_THRESHOLD
+  ) {
+    requiresApproval = true;
+  }
+
   const insert: InvoiceInsert = {
     content_hash: contentHash,
     mail_account_id: input.mailAccountId,
@@ -140,6 +161,7 @@ export async function createInvoiceFromExtraction(
     extracted_by: "llm_haiku",
     extraction_confidence: ext.confidence,
     needs_review: needsReview,
+    requires_approval: requiresApproval,
     gmail_message_id: input.gmailMessageId,
     storage_path: input.storagePath,
     original_mime_type: input.storageMimeType,
@@ -297,3 +319,98 @@ export async function changeInvoiceStatus(input: ChangeStatusInput) {
     throw new Error(`Status wijzigen mislukte: ${error.message}`);
   }
 }
+
+const approveSchema = z.object({
+  invoiceId: z.string().uuid(),
+  userId: z.string().uuid(),
+});
+
+export type ApprovalState = {
+  approvedFirst: boolean;
+  approvedBoth: boolean;
+  message: string;
+};
+
+/**
+ * Goedkeuring registreren. Bij requires_approval=true is een tweede
+ * onafhankelijke handtekening van een andere user nodig voordat de
+ * status naar 'goedgekeurd' beweegt. Bij requires_approval=false zet
+ * deze functie de status direct naar goedgekeurd.
+ */
+export async function approveInvoice(
+  input: z.input<typeof approveSchema>,
+): Promise<ApprovalState> {
+  const parsed = approveSchema.parse(input);
+  const admin = createServiceClient();
+
+  const { data: invoice, error: readErr } = await admin
+    .from("invoices")
+    .select(
+      "id, status, requires_approval, approved_by, co_approved_by",
+    )
+    .eq("id", parsed.invoiceId)
+    .single();
+  if (readErr) throw new Error(readErr.message);
+
+  if (invoice.approved_by === parsed.userId || invoice.co_approved_by === parsed.userId) {
+    return {
+      approvedFirst: invoice.approved_by !== null,
+      approvedBoth: invoice.approved_by !== null && invoice.co_approved_by !== null,
+      message: "Je hebt deze factuur al goedgekeurd.",
+    };
+  }
+
+  const now = new Date().toISOString();
+
+  // Geen dubbele approval nodig: direct door naar goedgekeurd.
+  if (!invoice.requires_approval) {
+    const { error } = await admin
+      .from("invoices")
+      .update({
+        approved_by: parsed.userId,
+        approved_at: now,
+        status: "goedgekeurd",
+      })
+      .eq("id", parsed.invoiceId);
+    if (error) throw new Error(error.message);
+    return {
+      approvedFirst: true,
+      approvedBoth: false,
+      message: "Goedgekeurd.",
+    };
+  }
+
+  // Eerste handtekening: zet approved_by, status blijft.
+  if (!invoice.approved_by) {
+    const { error } = await admin
+      .from("invoices")
+      .update({
+        approved_by: parsed.userId,
+        approved_at: now,
+      })
+      .eq("id", parsed.invoiceId);
+    if (error) throw new Error(error.message);
+    return {
+      approvedFirst: true,
+      approvedBoth: false,
+      message: "Eerste goedkeuring genoteerd. Wacht op de tweede.",
+    };
+  }
+
+  // Tweede handtekening door een andere user: door naar goedgekeurd.
+  const { error } = await admin
+    .from("invoices")
+    .update({
+      co_approved_by: parsed.userId,
+      co_approved_at: now,
+      status: "goedgekeurd",
+    })
+    .eq("id", parsed.invoiceId);
+  if (error) throw new Error(error.message);
+  return {
+    approvedFirst: true,
+    approvedBoth: true,
+    message: "Volledig goedgekeurd.",
+  };
+}
+

@@ -385,6 +385,8 @@ export type Database = {
           bookkeeper_verified_at: string | null
           bookkeeper_verified_by: string | null
           category_id: string | null
+          co_approved_at: string | null
+          co_approved_by: string | null
           content_hash: string
           created_at: string
           currency: string
@@ -437,6 +439,8 @@ export type Database = {
           bookkeeper_verified_at?: string | null
           bookkeeper_verified_by?: string | null
           category_id?: string | null
+          co_approved_at?: string | null
+          co_approved_by?: string | null
           content_hash: string
           created_at?: string
           currency?: string
@@ -489,6 +493,8 @@ export type Database = {
           bookkeeper_verified_at?: string | null
           bookkeeper_verified_by?: string | null
           category_id?: string | null
+          co_approved_at?: string | null
+          co_approved_by?: string | null
           content_hash?: string
           created_at?: string
           currency?: string
@@ -551,6 +557,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_co_approved_by_fkey"
+            columns: ["co_approved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {

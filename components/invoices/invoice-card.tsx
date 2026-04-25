@@ -110,6 +110,11 @@ export function InvoiceCard({ invoice }: { invoice: InvoiceListItem }) {
             Te beoordelen
           </span>
         ) : null}
+        {invoice.requires_approval ? (
+          <span className="rounded-full bg-[color:var(--color-primary-soft)] px-2 py-0.5 text-[color:var(--color-primary)]">
+            Dubbele goedkeuring
+          </span>
+        ) : null}
         <CardTags tags={invoice.tags} />
       </footer>
     </Link>

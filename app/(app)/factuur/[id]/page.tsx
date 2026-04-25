@@ -19,6 +19,7 @@ import { TagsManager } from "@/components/invoices/tags-manager";
 import { NotesSection } from "@/components/invoices/notes-section";
 import { AuditLog } from "@/components/invoices/audit-log";
 import { EditFields } from "@/components/invoices/edit-fields";
+import { ApprovalPanel } from "@/components/invoices/approval-panel";
 import type { InvoiceStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -128,6 +129,19 @@ export default async function InvoiceDetailPage({
       listActiveEntities(),
     ]);
 
+  // Approver-namen ophalen voor het approval-paneel.
+  const approverIds = [invoice.approved_by, invoice.co_approved_by].filter(
+    (id): id is string => id !== null,
+  );
+  let approvers: { id: string; display_name: string }[] = [];
+  if (approverIds.length > 0) {
+    const { data } = await supabase
+      .from("users")
+      .select("id, display_name")
+      .in("id", approverIds);
+    approvers = data ?? [];
+  }
+
   const grossLabel =
     invoice.amount_gross !== null ? NUMBER.format(Number(invoice.amount_gross)) : "—";
   const netLabel =
@@ -223,6 +237,18 @@ export default async function InvoiceDetailPage({
           }))}
         />
       </div>
+
+      {invoice.requires_approval && user ? (
+        <ApprovalPanel
+          invoiceId={invoice.id}
+          currentUserId={user.id}
+          approvedBy={invoice.approved_by}
+          approvedAt={invoice.approved_at}
+          coApprovedBy={invoice.co_approved_by}
+          coApprovedAt={invoice.co_approved_at}
+          approvers={approvers}
+        />
+      ) : null}
 
       <section className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <h2 className="mb-3 text-base font-medium">Toewijzing</h2>

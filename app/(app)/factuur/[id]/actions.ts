@@ -3,11 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
+  approveInvoice,
   changeInvoiceStatus,
   type ChangeStatusInput,
   updateInvoiceFields,
   type UpdateInvoiceFieldsInput,
 } from "@/lib/mutations/invoices";
+import { createClient } from "@/lib/supabase/server";
 import {
   findOrCreateTagByName,
   linkTagToInvoice,
@@ -38,6 +40,27 @@ export async function updateFieldsAction(input: UpdateInvoiceFieldsInput) {
   await updateInvoiceFields(input);
   revalidatePath("/inbox");
   revalidatePath(`/factuur/${input.invoiceId}`);
+}
+
+const approveSchemaAction = z.object({ invoiceId: z.string().uuid() });
+
+export async function approveInvoiceAction(
+  input: z.input<typeof approveSchemaAction>,
+) {
+  await ensureMutator();
+  const parsed = approveSchemaAction.parse(input);
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Niet ingelogd.");
+  const result = await approveInvoice({
+    invoiceId: parsed.invoiceId,
+    userId: user.id,
+  });
+  revalidatePath("/inbox");
+  revalidatePath(`/factuur/${parsed.invoiceId}`);
+  return result;
 }
 
 const addTagSchema = z.object({
