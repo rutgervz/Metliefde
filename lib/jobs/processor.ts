@@ -6,6 +6,7 @@ import {
 } from "@/lib/google/gmail";
 import { extractInvoiceWithHaiku } from "@/lib/extractors/haiku";
 import { createInvoiceFromExtraction } from "@/lib/mutations/invoices";
+import { applySuggestedTags } from "@/lib/mutations/tags";
 import {
   buildAttachmentPath,
   uploadAttachment,
@@ -149,6 +150,19 @@ async function processExtractInvoiceJob(job: JobRow): Promise<JobResult> {
 
   if (result.status === "error") {
     return { jobId: job.id, status: "mislukt", message: result.message };
+  }
+
+  // Tag-suggesties van Haiku toepassen, alleen voor net-aangemaakte facturen.
+  if (
+    result.status === "created" &&
+    extraction.suggested_tags &&
+    extraction.suggested_tags.length > 0
+  ) {
+    try {
+      await applySuggestedTags(result.invoiceId, extraction.suggested_tags);
+    } catch (err) {
+      console.error("applySuggestedTags faalde", err);
+    }
   }
 
   return {

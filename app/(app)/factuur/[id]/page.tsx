@@ -8,8 +8,10 @@ import {
   FileText,
 } from "lucide-react";
 import { getInvoiceById } from "@/lib/queries/invoices";
+import { listAllTags, listInvoiceTags } from "@/lib/queries/tags";
 import { getAttachmentSignedUrl } from "@/lib/storage/invoices";
 import { StatusActions } from "@/components/invoices/status-actions";
+import { TagsManager } from "@/components/invoices/tags-manager";
 import type { InvoiceStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -103,9 +105,13 @@ export default async function InvoiceDetailPage({
   if (!invoice) notFound();
 
   const due = describeDueDate(invoice.due_date);
-  const signedUrl = invoice.storage_path
-    ? await getAttachmentSignedUrl(invoice.storage_path, 60 * 30)
-    : null;
+  const [signedUrl, allTags, currentTags] = await Promise.all([
+    invoice.storage_path
+      ? getAttachmentSignedUrl(invoice.storage_path, 60 * 30)
+      : Promise.resolve(null),
+    listAllTags(),
+    listInvoiceTags(invoice.id),
+  ]);
 
   const grossLabel =
     invoice.amount_gross !== null ? NUMBER.format(Number(invoice.amount_gross)) : "—";
@@ -178,7 +184,7 @@ export default async function InvoiceDetailPage({
 
       <section className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <h2 className="mb-3 text-base font-medium">Toewijzing</h2>
-        <dl className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <dl className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <dt className="text-xs text-[color:var(--color-muted-foreground)]">
               Entiteit
@@ -209,6 +215,16 @@ export default async function InvoiceDetailPage({
             </dd>
           </div>
         </dl>
+        <div className="mt-4 border-t border-[color:var(--color-border)] pt-4">
+          <p className="mb-2 text-xs text-[color:var(--color-muted-foreground)]">
+            Tags
+          </p>
+          <TagsManager
+            invoiceId={invoice.id}
+            current={currentTags}
+            available={allTags}
+          />
+        </div>
       </section>
 
       <section className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">

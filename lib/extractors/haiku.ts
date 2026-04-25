@@ -22,6 +22,7 @@ const extractionSchema = z.object({
   recipient_iban: z.string().nullable(),
   expense_reason: z.string().nullable(),
   is_recurring_hint: z.boolean().default(false),
+  suggested_tags: z.array(z.string().min(1).max(40)).default([]),
   confidence: z.number().min(0).max(1).default(0.5),
 });
 
@@ -42,6 +43,11 @@ Belangrijke regels:
   - "orderbevestiging" voor mails die alleen een bestelling bevestigen
   - "onbekend" als je niet zeker bent
 - expense_reason: een korte omschrijving van waar de uitgave voor was (bijvoorbeeld "Domeinregistratie indigo.ventures 2026"). Maximaal 1 zin.
+- suggested_tags: 1 tot 4 korte Nederlandse tags die deze factuur typeren. Kies passend uit:
+  - Categorie: "Software", "Telecom", "Internet", "Hosting", "Domeinregistratie", "Reis", "Brandstof", "Parkeren", "Verzekering", "Onderhoud", "Kantoorartikelen", "Eten en drinken", "Representatie", "Drukwerk", "Boekhouding", "Advies", "Energie", "Water"
+  - Boekhoud-conventies: "BTW aftrekbaar", "BTW 21%", "BTW 9%", "BTW 0%", "Investering", "Terugkerend abonnement", "Verzamelfactuur", "Doorbelasten", "Buitenland"
+  - Aard: "Privé", "Zakelijk"
+  Verzin geen tags die niet duidelijk uit de tekst volgen. Geen synoniemen toevoegen.
 - confidence: 1.0 als alle hoofdvelden duidelijk zijn, 0.5 als veel onzeker is, lager bij grote twijfel.`;
 
 const TOOLS: Anthropic.Tool[] = [
@@ -97,6 +103,11 @@ const TOOLS: Anthropic.Tool[] = [
           type: "boolean",
           description: "True als dit een terugkerend abonnement lijkt.",
         },
+        suggested_tags: {
+          type: "array",
+          items: { type: "string" },
+          description: "1 tot 4 korte Nederlandse tags voor deze factuur.",
+        },
         confidence: {
           type: "number",
           description: "0 tot 1.",
@@ -116,6 +127,7 @@ const TOOLS: Anthropic.Tool[] = [
         "payment_reference",
         "recipient_iban",
         "is_recurring_hint",
+        "suggested_tags",
         "confidence",
       ],
     },
