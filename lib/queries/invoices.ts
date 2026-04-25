@@ -33,11 +33,18 @@ export type InvoiceListFilters = {
   limit?: number;
 };
 
-/**
- * Stap 5/6 vullen deze lijst pas met data. Voor nu accepteren we de
- * filters al en geven we een lege array terug zodat de UI in de
- * tussentijd niet crasht.
- */
+export type InvoiceDetail = InvoiceRow & {
+  vendor: { id: string; name: string; email_domain: string | null } | null;
+  entity:
+    | {
+        id: string;
+        name: string;
+        color: string;
+        owner_sphere: OwnerSphere;
+      }
+    | null;
+};
+
 type InvoiceJoinedRow = {
   id: string;
   vendor_id: string | null;
@@ -54,6 +61,20 @@ type InvoiceJoinedRow = {
   vendors: { name: string } | null;
   entities: { name: string; color: string; owner_sphere: OwnerSphere } | null;
 };
+
+export async function getInvoiceById(id: string): Promise<InvoiceDetail | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("invoices")
+    .select(
+      `*,
+       vendor:vendors ( id, name, email_domain ),
+       entity:entities ( id, name, color, owner_sphere )`,
+    )
+    .eq("id", id)
+    .maybeSingle();
+  return (data as unknown as InvoiceDetail | null) ?? null;
+}
 
 export async function listInboxInvoices(
   filters: InvoiceListFilters = {},

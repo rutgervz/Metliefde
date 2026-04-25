@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AlertTriangle, Clock } from "lucide-react";
 import type { InvoiceListItem } from "@/lib/queries/invoices";
 import { cn } from "@/lib/utils";
@@ -57,7 +58,9 @@ export function InvoiceCard({ invoice }: { invoice: InvoiceListItem }) {
     invoice.amount_gross !== null ? NUMBER.format(invoice.amount_gross) : "—";
 
   return (
-    <article className="space-y-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3 text-sm">
+    <Link
+      href={`/factuur/${invoice.id}`}
+      className="block space-y-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3 text-sm transition-colors hover:border-[color:var(--color-primary)] hover:bg-[color:var(--color-primary-soft)]/30">
       <header className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1 space-y-0.5">
           <p className="truncate text-sm">
@@ -107,6 +110,6 @@ export function InvoiceCard({ invoice }: { invoice: InvoiceListItem }) {
           </span>
         ) : null}
       </footer>
-    </article>
+    </Link>
   );
 }

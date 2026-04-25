@@ -160,3 +160,94 @@ export async function createInvoiceFromExtraction(
   }
   return { status: "created", invoiceId: data.id };
 }
+
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  binnengekomen: ["te_beoordelen", "goedgekeurd", "afgewezen", "betwist", "on_hold"],
+  te_beoordelen: ["goedgekeurd", "afgewezen", "betwist", "on_hold"],
+  goedgekeurd: ["klaar_voor_betaling", "on_hold", "betwist", "te_beoordelen"],
+  klaar_voor_betaling: ["voldaan", "goedgekeurd", "betwist"],
+  voldaan: ["gearchiveerd", "betwist"],
+  afgewezen: ["gearchiveerd", "betwist"],
+  betwist: ["goedgekeurd", "afgewezen", "voldaan", "on_hold"],
+  on_hold: [
+    "te_beoordelen",
+    "goedgekeurd",
+    "klaar_voor_betaling",
+    "voldaan",
+    "afgewezen",
+    "betwist",
+  ],
+  gearchiveerd: ["betwist"],
+};
+
+const statusChangeSchema = z.object({
+  invoiceId: z.string().uuid(),
+  toStatus: z.enum([
+    "binnengekomen",
+    "te_beoordelen",
+    "goedgekeurd",
+    "klaar_voor_betaling",
+    "voldaan",
+    "afgewezen",
+    "betwist",
+    "on_hold",
+    "gearchiveerd",
+  ]),
+  reason: z
+    .enum([
+      "dubbele_factuur",
+      "bedrag_klopt_niet",
+      "dienst_niet_geleverd",
+      "kwaliteit_onder_maat",
+      "verkeerde_adressering",
+      "onverwachte_verhoging",
+      "geen_overeenkomst",
+      "wachten_op_creditnota",
+      "contract_opgezegd",
+      "overig",
+    ])
+    .optional(),
+  note: z.string().max(2000).optional(),
+});
+
+export type ChangeStatusInput = z.input<typeof statusChangeSchema>;
+
+/**
+ * Wijzigt de status van een factuur. Valideert tegen de toegestane
+ * transities en zet bij afwijzen / betwisten ook reason en note. De
+ * trigger log_invoice_status_change schrijft automatisch een event.
+ */
+export async function changeInvoiceStatus(input: ChangeStatusInput) {
+  const parsed = statusChangeSchema.parse(input);
+  const admin = createServiceClient();
+
+  const current = await admin
+    .from("invoices")
+    .select("status")
+    .eq("id", parsed.invoiceId)
+    .single();
+  if (current.error) {
+    throw new Error(`Factuur niet gevonden: ${current.error.message}`);
+  }
+  const allowed = ALLOWED_TRANSITIONS[current.data.status] ?? [];
+  if (!allowed.includes(parsed.toStatus)) {
+    throw new Error(
+      `Overgang van ${current.data.status} naar ${parsed.toStatus} is niet toegestaan.`,
+    );
+  }
+
+  const { error } = await admin
+    .from("invoices")
+    .update({
+      status: parsed.toStatus,
+      status_reason: parsed.reason ?? null,
+      status_note: parsed.note ?? null,
+      ...(parsed.toStatus === "voldaan"
+        ? { paid_at: new Date().toISOString().slice(0, 10) }
+        : {}),
+    })
+    .eq("id", parsed.invoiceId);
+  if (error) {
+    throw new Error(`Status wijzigen mislukte: ${error.message}`);
+  }
+}
