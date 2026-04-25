@@ -406,6 +406,7 @@ export type Database = {
           mail_account_id: string | null
           needs_review: boolean
           original_filename: string | null
+          original_mime_type: string | null
           paid_at: string | null
           payment_batch_id: string | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
@@ -420,6 +421,7 @@ export type Database = {
           status_reason:
             | Database["public"]["Enums"]["invoice_status_reason"]
             | null
+          storage_path: string | null
           subscription_id: string | null
           updated_at: string
           vat_rate: number | null
@@ -456,6 +458,7 @@ export type Database = {
           mail_account_id?: string | null
           needs_review?: boolean
           original_filename?: string | null
+          original_mime_type?: string | null
           paid_at?: string | null
           payment_batch_id?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
@@ -470,6 +473,7 @@ export type Database = {
           status_reason?:
             | Database["public"]["Enums"]["invoice_status_reason"]
             | null
+          storage_path?: string | null
           subscription_id?: string | null
           updated_at?: string
           vat_rate?: number | null
@@ -506,6 +510,7 @@ export type Database = {
           mail_account_id?: string | null
           needs_review?: boolean
           original_filename?: string | null
+          original_mime_type?: string | null
           paid_at?: string | null
           payment_batch_id?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
@@ -520,6 +525,7 @@ export type Database = {
           status_reason?:
             | Database["public"]["Enums"]["invoice_status_reason"]
             | null
+          storage_path?: string | null
           subscription_id?: string | null
           updated_at?: string
           vat_rate?: number | null

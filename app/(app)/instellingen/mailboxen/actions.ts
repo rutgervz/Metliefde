@@ -8,6 +8,7 @@ import {
   updateMailAccount,
 } from "@/lib/mutations/mail-accounts";
 import { syncMailboxById } from "@/lib/google/sync";
+import { processPendingJobs } from "@/lib/jobs/processor";
 
 async function ensureOwner() {
   const profile = await getCurrentUserProfile();
@@ -113,4 +114,26 @@ export async function triggerMailboxSyncForId(mailAccountId: string) {
         : `${result.enqueued ?? 0} nieuw, ${result.skipped ?? 0} al bekend.`
       : result.message ?? "Sync mislukte.";
   return { status: result.status, summary };
+}
+
+/**
+ * Verwerk een batch wachtende extractie-jobs handmatig. Bedoeld voor
+ * ontwikkeling en testen; productie draait dit via de cron elke 5 min.
+ */
+export async function processQueueNow() {
+  await ensureOwner();
+  const results = await processPendingJobs(20);
+  revalidatePath("/instellingen/mailboxen");
+  revalidatePath("/inbox");
+  const created = results.filter((r) => r.status === "gereed").length;
+  const failed = results.filter((r) => r.status === "mislukt").length;
+  return {
+    processed: results.length,
+    created,
+    failed,
+    summary:
+      results.length === 0
+        ? "Geen wachtende jobs."
+        : `${created} verwerkt, ${failed} mislukt.`,
+  };
 }

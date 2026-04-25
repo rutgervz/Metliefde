@@ -19,6 +19,7 @@ import {
 } from "./actions";
 import { EntityPicker } from "@/components/mailboxen/entity-picker";
 import { SyncButton } from "@/components/mailboxen/sync-button";
+import { ProcessJobsButton } from "@/components/mailboxen/process-jobs-button";
 import type { MailAccountStatus } from "@/lib/types";
 
 const STATUS_LABEL: Record<MailAccountStatus, string> = {
@@ -126,13 +127,16 @@ export default async function MailboxenPage({
       ) : null}
 
       {isOwner ? (
-        <a
-          href="/api/mailbox/connect"
-          className="inline-flex w-fit items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm text-[color:var(--color-primary-foreground)] transition hover:bg-[color:var(--color-primary-hover)]"
-        >
-          <Plus className="h-4 w-4" />
-          Verbind mailbox
-        </a>
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            href="/api/mailbox/connect"
+            className="inline-flex w-fit items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm text-[color:var(--color-primary-foreground)] transition hover:bg-[color:var(--color-primary-hover)]"
+          >
+            <Plus className="h-4 w-4" />
+            Verbind mailbox
+          </a>
+          {mailboxes.length > 0 ? <ProcessJobsButton /> : null}
+        </div>
       ) : (
         <p className="text-sm text-[color:var(--color-muted-foreground)]">
           Alleen eigenaars kunnen mailboxen verbinden.
