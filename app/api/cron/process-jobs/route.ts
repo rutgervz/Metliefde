@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const results = await processPendingJobs(20);
+  const results = await processPendingJobs(40);
   return NextResponse.json({
     runAt: new Date().toISOString(),
     processed: results.length,

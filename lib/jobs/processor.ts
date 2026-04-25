@@ -191,9 +191,10 @@ async function recoverStaleJobs(): Promise<number> {
 /**
  * Verwerkt een batch wachtende jobs. Elke job wordt op zichzelf
  * uitgevoerd en bijgewerkt; falen van een job blokkeert de rest niet.
- * Tussen jobs een korte pauze om Anthropic-rate-limits te respecteren.
+ * Met Vercel Pro hebben we 300s function-timeout, dus grotere batches
+ * mogelijk. Tussen jobs een korte pauze om rate-limits te respecteren.
  */
-export async function processPendingJobs(maxJobs = 5): Promise<JobResult[]> {
+export async function processPendingJobs(maxJobs = 15): Promise<JobResult[]> {
   await recoverStaleJobs();
 
   const admin = createServiceClient();
@@ -210,8 +211,10 @@ export async function processPendingJobs(maxJobs = 5): Promise<JobResult[]> {
   const results: JobResult[] = [];
   for (const [index, job] of (jobs ?? []).entries()) {
     if (index > 0) {
-      // Korte rate-limit-vriendelijke pauze tussen Haiku calls.
-      await sleep(2_000);
+      // Korte pauze tussen calls. Bij rate-limit doet de Haiku-wrapper
+      // alsnog een eigen backoff, dus deze 1s is enkel een vriendelijke
+      // basisspreiding.
+      await sleep(1_000);
     }
     await markJobRunning(job.id);
     const attempts = (job.attempts ?? 0) + 1;

@@ -122,7 +122,7 @@ export async function triggerMailboxSyncForId(mailAccountId: string) {
  */
 export async function processQueueNow() {
   await ensureOwner();
-  const results = await processPendingJobs(5);
+  const results = await processPendingJobs(15);
   revalidatePath("/instellingen/mailboxen");
   revalidatePath("/inbox");
 
