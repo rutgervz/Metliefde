@@ -95,3 +95,22 @@ export async function triggerMailboxSync(formData: FormData) {
   await syncMailboxById(mailAccountId);
   revalidatePath("/instellingen/mailboxen");
 }
+
+/**
+ * Variant met expliciete argumenten voor de SyncButton client component.
+ * Geeft het sync-resultaat terug zodat de UI direct kan tonen wat er
+ * gebeurde, zonder eerst op revalidatie te wachten.
+ */
+export async function triggerMailboxSyncForId(mailAccountId: string) {
+  await ensureOwner();
+  const { mailAccountId: id } = idOnlySchema.parse({ mailAccountId });
+  const result = await syncMailboxById(id);
+  revalidatePath("/instellingen/mailboxen");
+  const summary =
+    result.status === "ok"
+      ? result.total === 0
+        ? `Geen berichten met label gevonden.`
+        : `${result.enqueued ?? 0} nieuw, ${result.skipped ?? 0} al bekend.`
+      : result.message ?? "Sync mislukte.";
+  return { status: result.status, summary };
+}

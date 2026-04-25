@@ -7,7 +7,6 @@ import {
   Pause,
   Play,
   Unlink,
-  RefreshCw,
 } from "lucide-react";
 import { listMailAccounts } from "@/lib/queries/mail-accounts";
 import { listActiveEntities } from "@/lib/queries/entities";
@@ -17,9 +16,9 @@ import {
   disconnectMailAccount,
   pauseMailAccount,
   resumeMailAccount,
-  triggerMailboxSync,
 } from "./actions";
 import { EntityPicker } from "@/components/mailboxen/entity-picker";
+import { SyncButton } from "@/components/mailboxen/sync-button";
 import type { MailAccountStatus } from "@/lib/types";
 
 const STATUS_LABEL: Record<MailAccountStatus, string> = {
@@ -197,20 +196,7 @@ export default async function MailboxenPage({
                   <div className="flex flex-wrap gap-2">
                     {box.status === "verbonden" ? (
                       <>
-                        <form action={triggerMailboxSync}>
-                          <input
-                            type="hidden"
-                            name="mailAccountId"
-                            value={box.id}
-                          />
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--color-primary)] px-2.5 py-1.5 text-xs text-[color:var(--color-primary)] hover:bg-[color:var(--color-primary-soft)]"
-                          >
-                            <RefreshCw className="h-3.5 w-3.5" />
-                            Sync nu
-                          </button>
-                        </form>
+                        <SyncButton mailAccountId={box.id} />
                         <form action={pauseMailAccount}>
                           <input
                             type="hidden"
@@ -267,6 +253,7 @@ export default async function MailboxenPage({
                     {new Date(box.last_synced_at).toLocaleString("nl-NL", {
                       dateStyle: "short",
                       timeStyle: "short",
+                      timeZone: "Europe/Amsterdam",
                     })}
                     {" · label "}
                     <code className="rounded bg-[color:var(--color-muted)] px-1">
