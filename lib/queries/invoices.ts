@@ -5,6 +5,8 @@ import type { InvoiceRow, InvoiceStatus, OwnerSphere } from "@/lib/types";
  * De voor-de-inbox-lijst nodige velden, plus naam van leverancier en
  * entiteit voor weergave in de kanban-kaarten.
  */
+export type InvoiceCardTag = { id: string; name: string; color: string };
+
 export type InvoiceListItem = Pick<
   InvoiceRow,
   | "id"
@@ -24,12 +26,14 @@ export type InvoiceListItem = Pick<
   entity_name: string | null;
   entity_color: string | null;
   entity_owner_sphere: OwnerSphere | null;
+  tags: InvoiceCardTag[];
 };
 
 export type InvoiceListFilters = {
   sphere?: OwnerSphere | "alle" | "samen";
   query?: string;
   statusIn?: InvoiceStatus[];
+  tag?: string | null;
   limit?: number;
 };
 
@@ -60,6 +64,7 @@ type InvoiceJoinedRow = {
   expense_reason: string | null;
   vendors: { name: string } | null;
   entities: { name: string; color: string; owner_sphere: OwnerSphere } | null;
+  invoice_tags: { tag: { id: string; name: string; color: string } | null }[] | null;
 };
 
 export async function getInvoiceById(id: string): Promise<InvoiceDetail | null> {
@@ -88,7 +93,8 @@ export async function listInboxInvoices(
        amount_gross, currency, status, needs_review, requires_approval,
        expense_reason,
        vendors ( name ),
-       entities ( name, color, owner_sphere )`,
+       entities ( name, color, owner_sphere ),
+       invoice_tags ( tag:tags ( id, name, color ) )`,
     )
     .order("due_date", { ascending: true, nullsFirst: false })
     .order("invoice_date", { ascending: false, nullsFirst: false })
@@ -114,7 +120,7 @@ export async function listInboxInvoices(
 
   const { data } = await query;
   const rows = (data ?? []) as unknown as InvoiceJoinedRow[];
-  return rows.map((r) => ({
+  const items = rows.map((r) => ({
     id: r.id,
     vendor_id: r.vendor_id,
     entity_id: r.entity_id,
@@ -131,5 +137,18 @@ export async function listInboxInvoices(
     entity_name: r.entities?.name ?? null,
     entity_color: r.entities?.color ?? null,
     entity_owner_sphere: r.entities?.owner_sphere ?? null,
+    tags: (r.invoice_tags ?? [])
+      .map((it) => it.tag)
+      .filter((t): t is InvoiceCardTag => t !== null),
   }));
+
+  // Tag-filter doen we client-side want PostgREST kan join-filtering op
+  // many-to-many lastig efficient uitdrukken zonder een view.
+  if (filters.tag) {
+    const wanted = filters.tag.toLowerCase();
+    return items.filter((i) =>
+      i.tags.some((t) => t.name.toLowerCase() === wanted),
+    );
+  }
+  return items;
 }

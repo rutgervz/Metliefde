@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, Clock } from "lucide-react";
+import { CardTags } from "@/components/invoices/card-tags";
 import type { InvoiceListItem } from "@/lib/queries/invoices";
 import { cn } from "@/lib/utils";
 
@@ -109,6 +110,7 @@ export function InvoiceCard({ invoice }: { invoice: InvoiceListItem }) {
             Te beoordelen
           </span>
         ) : null}
+        <CardTags tags={invoice.tags} />
       </footer>
     </Link>
   );

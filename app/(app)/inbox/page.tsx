@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { X } from "lucide-react";
 import { SphereFilter, parseSphere } from "@/components/nav/sphere-filter";
 import { InboxSearch } from "@/components/nav/inbox-search";
 import { InvoiceCard } from "@/components/invoices/invoice-card";
@@ -24,18 +26,28 @@ const FORMATTER = new Intl.NumberFormat("nl-NL", {
 export default async function InboxPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sfeer?: string; q?: string }>;
+  searchParams: Promise<{ sfeer?: string; q?: string; tag?: string }>;
 }) {
   const params = await searchParams;
   const sphere = parseSphere(params.sfeer);
   const query = params.q?.trim() ?? "";
+  const tag = params.tag?.trim() ?? "";
 
   const invoices = await listInboxInvoices({
     sphere,
     query,
+    tag: tag || null,
     statusIn: VISIBLE_STATUSES,
     limit: 300,
   });
+
+  const clearTagHref = (() => {
+    const next = new URLSearchParams();
+    if (sphere !== "alle") next.set("sfeer", sphere);
+    if (query) next.set("q", query);
+    const qs = next.toString();
+    return qs ? `/inbox?${qs}` : "/inbox";
+  })();
 
   const grouped = KANBAN_COLUMNS.reduce<Record<InvoiceStatus, InvoiceListItem[]>>(
     (acc, col) => {
@@ -57,6 +69,20 @@ export default async function InboxPage({
       <div className="space-y-3">
         <InboxSearch initialValue={query} />
         <SphereFilter basePath="/inbox" active={sphere} />
+        {tag ? (
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-[color:var(--color-muted-foreground)]">
+              Filter op tag:
+            </span>
+            <Link
+              href={clearTagHref}
+              className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-primary)] px-3 py-1 text-[color:var(--color-primary-foreground)]"
+            >
+              {tag}
+              <X className="h-3 w-3" />
+            </Link>
+          </div>
+        ) : null}
       </div>
 
       <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
