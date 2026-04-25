@@ -16,6 +16,7 @@ export type MailAccountListItem = Pick<
   | "gmail_label"
   | "last_synced_at"
   | "last_error"
+  | "last_sync_summary"
 >;
 
 export async function listMailAccounts(): Promise<MailAccountListItem[]> {
@@ -23,7 +24,7 @@ export async function listMailAccounts(): Promise<MailAccountListItem[]> {
   const { data } = await supabase
     .from("mail_accounts")
     .select(
-      "id, email, display_name, provider, status, default_entity_id, gmail_label, last_synced_at, last_error",
+      "id, email, display_name, provider, status, default_entity_id, gmail_label, last_synced_at, last_error, last_sync_summary",
     )
     .neq("status", "ontkoppeld")
     .order("created_at", { ascending: true });

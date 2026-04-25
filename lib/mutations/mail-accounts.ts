@@ -92,7 +92,7 @@ export async function persistRefreshedTokens(
  */
 export async function markMailboxSynced(
   id: string,
-  opts: { historyId?: string | null } = {},
+  opts: { historyId?: string | null; summary?: string | null } = {},
 ): Promise<void> {
   const admin = createServiceClient();
   const { error } = await admin
@@ -101,6 +101,7 @@ export async function markMailboxSynced(
       last_synced_at: new Date().toISOString(),
       last_error: null,
       ...(opts.historyId ? { gmail_history_id: opts.historyId } : {}),
+      ...(opts.summary !== undefined ? { last_sync_summary: opts.summary } : {}),
     })
     .eq("id", id);
   if (error) {

@@ -80,7 +80,7 @@ export async function syncMailbox(
   }
 
   if (!labelId) {
-    const message = `Label "${account.gmail_label}" niet gevonden in Gmail.`;
+    const message = `Label "${account.gmail_label}" niet gevonden in Gmail. Maak het aan in Gmail en pas filters toe.`;
     await markMailboxError(account.id, message);
     return { email: account.email, status: "error", message };
   }
@@ -110,7 +110,12 @@ export async function syncMailbox(
     }
   }
 
-  await markMailboxSynced(account.id);
+  const summary =
+    messageIds.length === 0
+      ? `Geen berichten gevonden met label "${account.gmail_label}". Pas een filter toe of label een test-mail.`
+      : `${enqueued} nieuw ingepakt, ${skipped} al bekend (totaal ${messageIds.length}).`;
+
+  await markMailboxSynced(account.id, { summary });
 
   return {
     email: account.email,

@@ -17,9 +17,9 @@ import {
   disconnectMailAccount,
   pauseMailAccount,
   resumeMailAccount,
-  setMailAccountDefaultEntity,
   triggerMailboxSync,
 } from "./actions";
+import { EntityPicker } from "@/components/mailboxen/entity-picker";
 import type { MailAccountStatus } from "@/lib/types";
 
 const STATUS_LABEL: Record<MailAccountStatus, string> = {
@@ -188,37 +188,11 @@ export default async function MailboxenPage({
 
               {isOwner ? (
                 <>
-                  <form
-                    action={setMailAccountDefaultEntity}
-                    className="flex flex-wrap items-center gap-2"
-                  >
-                    <input type="hidden" name="mailAccountId" value={box.id} />
-                    <label
-                      htmlFor={`entity-${box.id}`}
-                      className="text-xs text-[color:var(--color-muted-foreground)]"
-                    >
-                      Default-entiteit
-                    </label>
-                    <select
-                      id={`entity-${box.id}`}
-                      name="entityId"
-                      defaultValue={box.default_entity_id ?? ""}
-                      className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2 py-1.5 text-sm"
-                    >
-                      <option value="">Geen</option>
-                      {entities.map((e) => (
-                        <option key={e.id} value={e.id}>
-                          {e.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="submit"
-                      className="rounded-md border border-[color:var(--color-border)] px-2.5 py-1.5 text-xs text-[color:var(--color-muted-foreground)] hover:bg-[color:var(--color-muted)] hover:text-[color:var(--color-foreground)]"
-                    >
-                      Opslaan
-                    </button>
-                  </form>
+                  <EntityPicker
+                    mailAccountId={box.id}
+                    current={box.default_entity_id}
+                    entities={entities.map((e) => ({ id: e.id, name: e.name }))}
+                  />
 
                   <div className="flex flex-wrap gap-2">
                     {box.status === "verbonden" ? (
@@ -287,17 +261,20 @@ export default async function MailboxenPage({
               ) : null}
 
               {box.last_synced_at ? (
-                <p className="text-xs text-[color:var(--color-muted-foreground)]">
-                  Laatst opgehaald{" "}
-                  {new Date(box.last_synced_at).toLocaleString("nl-NL", {
-                    dateStyle: "short",
-                    timeStyle: "short",
-                  })}
-                  {" - "}label{" "}
-                  <code className="rounded bg-[color:var(--color-muted)] px-1">
-                    {box.gmail_label}
-                  </code>
-                </p>
+                <div className="space-y-1 text-xs text-[color:var(--color-muted-foreground)]">
+                  <p>
+                    Laatst opgehaald{" "}
+                    {new Date(box.last_synced_at).toLocaleString("nl-NL", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })}
+                    {" · label "}
+                    <code className="rounded bg-[color:var(--color-muted)] px-1">
+                      {box.gmail_label}
+                    </code>
+                  </p>
+                  {box.last_sync_summary ? <p>{box.last_sync_summary}</p> : null}
+                </div>
               ) : (
                 <p className="text-xs text-[color:var(--color-muted-foreground)]">
                   Nog niet gesynced. Klik "Sync nu" om handmatig op te halen.

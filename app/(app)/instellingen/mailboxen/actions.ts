@@ -38,6 +38,24 @@ export async function setMailAccountDefaultEntity(formData: FormData) {
   revalidatePath("/instellingen/mailboxen");
 }
 
+/**
+ * Variant met expliciete argumenten in plaats van FormData. Wordt
+ * aangeroepen vanuit de client-side EntityPicker zodat de auto-save
+ * niet afhankelijk is van form-submission gedrag.
+ */
+export async function setMailAccountDefaultEntityForId(
+  mailAccountId: string,
+  entityId: string | null,
+) {
+  await ensureOwner();
+  const parsed = setDefaultEntitySchema.parse({ mailAccountId, entityId });
+  await updateMailAccount({
+    id: parsed.mailAccountId,
+    default_entity_id: parsed.entityId,
+  });
+  revalidatePath("/instellingen/mailboxen");
+}
+
 const idOnlySchema = z.object({
   mailAccountId: z.string().uuid(),
 });

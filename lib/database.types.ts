@@ -659,6 +659,7 @@ export type Database = {
           gmail_label: string
           id: string
           last_error: string | null
+          last_sync_summary: string | null
           last_synced_at: string | null
           notes: string | null
           provider: Database["public"]["Enums"]["mail_provider"]
@@ -679,6 +680,7 @@ export type Database = {
           gmail_label?: string
           id?: string
           last_error?: string | null
+          last_sync_summary?: string | null
           last_synced_at?: string | null
           notes?: string | null
           provider?: Database["public"]["Enums"]["mail_provider"]
@@ -699,6 +701,7 @@ export type Database = {
           gmail_label?: string
           id?: string
           last_error?: string | null
+          last_sync_summary?: string | null
           last_synced_at?: string | null
           notes?: string | null
           provider?: Database["public"]["Enums"]["mail_provider"]
