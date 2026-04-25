@@ -11,12 +11,14 @@ import { getInvoiceById } from "@/lib/queries/invoices";
 import { listAllTags, listInvoiceTags } from "@/lib/queries/tags";
 import { listInvoiceNotes } from "@/lib/queries/invoice-notes";
 import { listInvoiceEvents } from "@/lib/queries/events";
+import { listActiveEntities } from "@/lib/queries/entities";
 import { getAttachmentSignedUrl } from "@/lib/storage/invoices";
 import { createClient } from "@/lib/supabase/server";
 import { StatusActions } from "@/components/invoices/status-actions";
 import { TagsManager } from "@/components/invoices/tags-manager";
 import { NotesSection } from "@/components/invoices/notes-section";
 import { AuditLog } from "@/components/invoices/audit-log";
+import { EditFields } from "@/components/invoices/edit-fields";
 import type { InvoiceStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -114,15 +116,17 @@ export default async function InvoiceDetailPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const [signedUrl, allTags, currentTags, notes, events] = await Promise.all([
-    invoice.storage_path
-      ? getAttachmentSignedUrl(invoice.storage_path, 60 * 30)
-      : Promise.resolve(null),
-    listAllTags(),
-    listInvoiceTags(invoice.id),
-    listInvoiceNotes(invoice.id),
-    listInvoiceEvents(invoice.id),
-  ]);
+  const [signedUrl, allTags, currentTags, notes, events, entities] =
+    await Promise.all([
+      invoice.storage_path
+        ? getAttachmentSignedUrl(invoice.storage_path, 60 * 30)
+        : Promise.resolve(null),
+      listAllTags(),
+      listInvoiceTags(invoice.id),
+      listInvoiceNotes(invoice.id),
+      listInvoiceEvents(invoice.id),
+      listActiveEntities(),
+    ]);
 
   const grossLabel =
     invoice.amount_gross !== null ? NUMBER.format(Number(invoice.amount_gross)) : "—";
@@ -191,7 +195,34 @@ export default async function InvoiceDetailPage({
         )}
       </section>
 
-      <StatusActions invoiceId={invoice.id} currentStatus={invoice.status} />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <StatusActions invoiceId={invoice.id} currentStatus={invoice.status} />
+        <EditFields
+          invoice={{
+            id: invoice.id,
+            entity_id: invoice.entity_id,
+            expense_reason: invoice.expense_reason,
+            invoice_number: invoice.invoice_number,
+            invoice_date: invoice.invoice_date,
+            due_date: invoice.due_date,
+            amount_gross:
+              invoice.amount_gross !== null ? Number(invoice.amount_gross) : null,
+            amount_net:
+              invoice.amount_net !== null ? Number(invoice.amount_net) : null,
+            amount_vat:
+              invoice.amount_vat !== null ? Number(invoice.amount_vat) : null,
+            vat_rate: invoice.vat_rate !== null ? Number(invoice.vat_rate) : null,
+            payment_reference: invoice.payment_reference,
+            recipient_iban: invoice.recipient_iban,
+          }}
+          entities={entities.map((e) => ({
+            id: e.id,
+            name: e.name,
+            color: e.color,
+            owner_sphere: e.owner_sphere,
+          }))}
+        />
+      </div>
 
       <section className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <h2 className="mb-3 text-base font-medium">Toewijzing</h2>

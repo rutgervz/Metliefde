@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { changeInvoiceStatus, type ChangeStatusInput } from "@/lib/mutations/invoices";
+import {
+  changeInvoiceStatus,
+  type ChangeStatusInput,
+  updateInvoiceFields,
+  type UpdateInvoiceFieldsInput,
+} from "@/lib/mutations/invoices";
 import {
   findOrCreateTagByName,
   linkTagToInvoice,
@@ -24,6 +29,13 @@ async function ensureMutator() {
 export async function changeStatusAction(input: ChangeStatusInput) {
   await ensureMutator();
   await changeInvoiceStatus(input);
+  revalidatePath("/inbox");
+  revalidatePath(`/factuur/${input.invoiceId}`);
+}
+
+export async function updateFieldsAction(input: UpdateInvoiceFieldsInput) {
+  await ensureMutator();
+  await updateInvoiceFields(input);
   revalidatePath("/inbox");
   revalidatePath(`/factuur/${input.invoiceId}`);
 }

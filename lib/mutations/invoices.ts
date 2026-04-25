@@ -217,6 +217,52 @@ export type ChangeStatusInput = z.input<typeof statusChangeSchema>;
  * transities en zet bij afwijzen / betwisten ook reason en note. De
  * trigger log_invoice_status_change schrijft automatisch een event.
  */
+const updateFieldsSchema = z.object({
+  invoiceId: z.string().uuid(),
+  entity_id: z.string().uuid().nullable().optional(),
+  category_id: z.string().uuid().nullable().optional(),
+  expense_reason: z.string().max(500).nullable().optional(),
+  invoice_number: z.string().max(120).nullable().optional(),
+  invoice_date: z.string().nullable().optional(),
+  due_date: z.string().nullable().optional(),
+  amount_gross: z.number().nullable().optional(),
+  amount_net: z.number().nullable().optional(),
+  amount_vat: z.number().nullable().optional(),
+  vat_rate: z.number().nullable().optional(),
+  payment_reference: z.string().max(200).nullable().optional(),
+  recipient_iban: z.string().max(40).nullable().optional(),
+});
+
+export type UpdateInvoiceFieldsInput = z.input<typeof updateFieldsSchema>;
+
+/**
+ * Werk een set bewerkbare factuur-velden bij in een keer. Alleen velden
+ * die in de input zitten worden meegestuurd, andere blijven onaangeroerd.
+ * Gebruikt de service client zodat ook boekhouders BTW-correcties kunnen
+ * doen zonder eigen RLS-policy.
+ */
+export async function updateInvoiceFields(input: UpdateInvoiceFieldsInput) {
+  const parsed = updateFieldsSchema.parse(input);
+  const { invoiceId, ...rest } = parsed;
+  const update: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rest)) {
+    if (value !== undefined) update[key] = value;
+  }
+  if (Object.keys(update).length === 0) return;
+
+  // Bij handmatige correctie de needs_review-vlag automatisch wegen.
+  update.needs_review = false;
+
+  const admin = createServiceClient();
+  const { error } = await admin
+    .from("invoices")
+    .update(update as never)
+    .eq("id", invoiceId);
+  if (error) {
+    throw new Error(`updateInvoiceFields: ${error.message}`);
+  }
+}
+
 export async function changeInvoiceStatus(input: ChangeStatusInput) {
   const parsed = statusChangeSchema.parse(input);
   const admin = createServiceClient();
