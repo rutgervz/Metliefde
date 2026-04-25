@@ -8,6 +8,10 @@ import {
   linkTagToInvoice,
   unlinkTagFromInvoice,
 } from "@/lib/mutations/tags";
+import {
+  addInvoiceNote,
+  removeInvoiceNote,
+} from "@/lib/mutations/invoice-notes";
 import { getCurrentUserProfile } from "@/lib/queries/users";
 
 async function ensureMutator() {
@@ -52,5 +56,34 @@ export async function removeTagFromInvoiceAction(
   await ensureMutator();
   const parsed = removeTagSchema.parse(input);
   await unlinkTagFromInvoice(parsed);
+  revalidatePath(`/factuur/${parsed.invoiceId}`);
+}
+
+const noteSchema = z.object({
+  invoiceId: z.string().uuid(),
+  content: z.string().min(1).max(2000),
+});
+
+export async function addNoteAction(input: z.input<typeof noteSchema>) {
+  // Iedereen met read-toegang mag noteren — RLS regelt zichtbaarheid.
+  const profile = await getCurrentUserProfile();
+  if (!profile) throw new Error("Niet ingelogd.");
+  const parsed = noteSchema.parse(input);
+  await addInvoiceNote(parsed);
+  revalidatePath(`/factuur/${parsed.invoiceId}`);
+}
+
+const removeNoteSchemaAction = z.object({
+  invoiceId: z.string().uuid(),
+  noteId: z.string().uuid(),
+});
+
+export async function removeNoteAction(
+  input: z.input<typeof removeNoteSchemaAction>,
+) {
+  const profile = await getCurrentUserProfile();
+  if (!profile) throw new Error("Niet ingelogd.");
+  const parsed = removeNoteSchemaAction.parse(input);
+  await removeInvoiceNote(parsed);
   revalidatePath(`/factuur/${parsed.invoiceId}`);
 }

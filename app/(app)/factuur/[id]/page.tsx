@@ -9,9 +9,14 @@ import {
 } from "lucide-react";
 import { getInvoiceById } from "@/lib/queries/invoices";
 import { listAllTags, listInvoiceTags } from "@/lib/queries/tags";
+import { listInvoiceNotes } from "@/lib/queries/invoice-notes";
+import { listInvoiceEvents } from "@/lib/queries/events";
 import { getAttachmentSignedUrl } from "@/lib/storage/invoices";
+import { createClient } from "@/lib/supabase/server";
 import { StatusActions } from "@/components/invoices/status-actions";
 import { TagsManager } from "@/components/invoices/tags-manager";
+import { NotesSection } from "@/components/invoices/notes-section";
+import { AuditLog } from "@/components/invoices/audit-log";
 import type { InvoiceStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -105,12 +110,18 @@ export default async function InvoiceDetailPage({
   if (!invoice) notFound();
 
   const due = describeDueDate(invoice.due_date);
-  const [signedUrl, allTags, currentTags] = await Promise.all([
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const [signedUrl, allTags, currentTags, notes, events] = await Promise.all([
     invoice.storage_path
       ? getAttachmentSignedUrl(invoice.storage_path, 60 * 30)
       : Promise.resolve(null),
     listAllTags(),
     listInvoiceTags(invoice.id),
+    listInvoiceNotes(invoice.id),
+    listInvoiceEvents(invoice.id),
   ]);
 
   const grossLabel =
@@ -320,6 +331,26 @@ export default async function InvoiceDetailPage({
           </p>
         )}
       </section>
+
+      <section className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
+        <h2 className="mb-3 text-base font-medium">Notities</h2>
+        {user ? (
+          <NotesSection
+            invoiceId={invoice.id}
+            initialNotes={notes}
+            currentUserId={user.id}
+          />
+        ) : null}
+      </section>
+
+      <details className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
+        <summary className="cursor-pointer text-base font-medium">
+          Activiteit ({events.length})
+        </summary>
+        <div className="mt-4">
+          <AuditLog events={events} />
+        </div>
+      </details>
 
       <section className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 text-xs text-[color:var(--color-muted-foreground)]">
         Geextraheerd door {invoice.extracted_by}
