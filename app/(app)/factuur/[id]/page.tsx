@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { getInvoiceById } from "@/lib/queries/invoices";
 import { listAllTags, listInvoiceTags } from "@/lib/queries/tags";
+import { getSuggestedTagsByVendor } from "@/lib/queries/tag-suggestions";
 import { listInvoiceNotes } from "@/lib/queries/invoice-notes";
 import { listInvoiceEvents } from "@/lib/queries/events";
 import { listActiveEntities } from "@/lib/queries/entities";
@@ -117,7 +118,7 @@ export default async function InvoiceDetailPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const [signedUrl, allTags, currentTags, notes, events, entities] =
+  const [signedUrl, allTags, currentTags, notes, events, entities, smartTags] =
     await Promise.all([
       invoice.storage_path
         ? getAttachmentSignedUrl(invoice.storage_path, 60 * 30)
@@ -127,6 +128,7 @@ export default async function InvoiceDetailPage({
       listInvoiceNotes(invoice.id),
       listInvoiceEvents(invoice.id),
       listActiveEntities(),
+      getSuggestedTagsByVendor(invoice.id),
     ]);
 
   // Approver-namen ophalen voor het approval-paneel.
@@ -291,6 +293,7 @@ export default async function InvoiceDetailPage({
             invoiceId={invoice.id}
             current={currentTags}
             available={allTags}
+            smartSuggestions={smartTags}
           />
         </div>
       </section>

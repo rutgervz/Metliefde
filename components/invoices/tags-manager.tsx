@@ -48,10 +48,12 @@ export function TagsManager({
   invoiceId,
   current,
   available,
+  smartSuggestions = [],
 }: {
   invoiceId: string;
   current: TagOption[];
   available: TagOption[];
+  smartSuggestions?: string[];
 }) {
   const [tags, setTags] = useState<TagOption[]>(current);
   const [input, setInput] = useState("");
@@ -77,12 +79,24 @@ export function TagsManager({
     tags.some((t) => t.name.toLowerCase() === lower);
   const showCreate = trimmed.length > 0 && !exactExists;
 
-  // Suggesties: boekhoud-conventies en categorieen die nog niet
-  // toegevoegd zijn aan deze factuur.
-  const suggestions = useMemo(
-    () => SUGGESTED_TAG_NAMES.filter((name) => !taken.has(name.toLowerCase())),
-    [taken],
+  // Slimme suggesties: tags die op andere facturen van deze leverancier
+  // staan, ontdubbeld en zonder de al toegevoegde.
+  const smart = useMemo(
+    () =>
+      smartSuggestions.filter((name) => !taken.has(name.toLowerCase())).slice(0, 8),
+    [smartSuggestions, taken],
   );
+
+  // Algemene boekhoud-conventies als tweede laag, exclusief wat al getoond is.
+  const generic = useMemo(() => {
+    const usedSet = new Set([
+      ...taken,
+      ...smart.map((s) => s.toLowerCase()),
+    ]);
+    return SUGGESTED_TAG_NAMES.filter(
+      (name) => !usedSet.has(name.toLowerCase()),
+    ).slice(0, 12);
+  }, [taken, smart]);
 
   function addByName(name: string) {
     const value = name.trim();
@@ -134,16 +148,38 @@ export function TagsManager({
 
   return (
     <div className="space-y-2">
-      {suggestions.length > 0 ? (
+      {smart.length > 0 ? (
         <div className="space-y-1.5">
           <p className="flex items-center gap-1 text-xs text-[color:var(--color-muted-foreground)]">
-            <Sparkles className="h-3 w-3" />
-            Voorgestelde tags - klik om toe te voegen
+            <Sparkles className="h-3 w-3 text-[color:var(--color-primary)]" />
+            Op basis van eerdere facturen van deze leverancier
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {suggestions.slice(0, 12).map((name) => (
+            {smart.map((name) => (
               <button
-                key={name}
+                key={`smart-${name}`}
+                type="button"
+                onClick={() => addByName(name)}
+                disabled={pending}
+                className="inline-flex items-center gap-1 rounded-full border border-[color:var(--color-primary)]/40 bg-[color:var(--color-primary-soft)]/40 px-2 py-0.5 text-xs text-[color:var(--color-primary)] hover:bg-[color:var(--color-primary-soft)] disabled:opacity-60"
+              >
+                <Plus className="h-3 w-3" />
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {generic.length > 0 ? (
+        <div className="space-y-1.5">
+          <p className="text-xs text-[color:var(--color-muted-foreground)]">
+            Veelgebruikt in boekhouding
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {generic.map((name) => (
+              <button
+                key={`generic-${name}`}
                 type="button"
                 onClick={() => addByName(name)}
                 disabled={pending}
