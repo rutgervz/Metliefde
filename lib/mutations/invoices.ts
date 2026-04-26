@@ -162,6 +162,10 @@ export async function createInvoiceFromExtraction(
     extraction_confidence: ext.confidence,
     needs_review: needsReview,
     requires_approval: requiresApproval,
+    haiku_suggested_tags:
+      ext.suggested_tags && ext.suggested_tags.length > 0
+        ? ext.suggested_tags
+        : null,
     gmail_message_id: input.gmailMessageId,
     storage_path: input.storagePath,
     original_mime_type: input.storageMimeType,

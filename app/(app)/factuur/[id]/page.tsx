@@ -293,6 +293,7 @@ export default async function InvoiceDetailPage({
             invoiceId={invoice.id}
             current={currentTags}
             available={allTags}
+            haikuSuggestions={invoice.haiku_suggested_tags ?? []}
             smartSuggestions={smartTags}
           />
         </div>

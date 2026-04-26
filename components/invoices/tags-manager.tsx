@@ -10,49 +10,29 @@ import { cn } from "@/lib/utils";
 
 export type TagOption = { id: string; name: string; color: string };
 
-// Veelvoorkomende tags voor Nederlandse boekhouding plus categorieen.
-// Worden getoond als snel-toe-te-voegen suggesties boven de input.
-const SUGGESTED_TAG_NAMES = [
-  "Software",
-  "Telecom",
-  "Internet",
-  "Hosting",
-  "Domeinregistratie",
-  "Reis",
-  "Brandstof",
-  "Parkeren",
-  "Verzekering",
-  "Onderhoud",
-  "Kantoorartikelen",
-  "Eten en drinken",
-  "Representatie",
-  "Drukwerk",
-  "Boekhouding",
-  "Advies",
-  "Energie",
-  "Water",
-  "BTW aftrekbaar",
+// Minimale fallback voor het geval Haiku nog geen suggesties heeft
+// gegeven en er ook nog geen leverancier-historie is. Bewust kort
+// gehouden zodat de UI niet vol staat met statische tags.
+const FALLBACK_TAG_NAMES = [
   "BTW 21%",
   "BTW 9%",
-  "BTW 0%",
-  "Investering",
-  "Terugkerend abonnement",
-  "Verzamelfactuur",
-  "Doorbelasten",
-  "Buitenland",
+  "BTW aftrekbaar",
   "Privé",
   "Zakelijk",
+  "Terugkerend abonnement",
 ];
 
 export function TagsManager({
   invoiceId,
   current,
   available,
+  haikuSuggestions = [],
   smartSuggestions = [],
 }: {
   invoiceId: string;
   current: TagOption[];
   available: TagOption[];
+  haikuSuggestions?: string[];
   smartSuggestions?: string[];
 }) {
   const [tags, setTags] = useState<TagOption[]>(current);
@@ -79,24 +59,31 @@ export function TagsManager({
     tags.some((t) => t.name.toLowerCase() === lower);
   const showCreate = trimmed.length > 0 && !exactExists;
 
-  // Slimme suggesties: tags die op andere facturen van deze leverancier
-  // staan, ontdubbeld en zonder de al toegevoegde.
-  const smart = useMemo(
+  // Haiku-suggesties: contextueel voor deze factuur (mail + PDF).
+  const haiku = useMemo(
     () =>
-      smartSuggestions.filter((name) => !taken.has(name.toLowerCase())).slice(0, 8),
-    [smartSuggestions, taken],
+      haikuSuggestions
+        .filter((name) => !taken.has(name.toLowerCase()))
+        .slice(0, 6),
+    [haikuSuggestions, taken],
   );
 
-  // Algemene boekhoud-conventies als tweede laag, exclusief wat al getoond is.
+  // Leverancier-historie: tags die op andere facturen van deze vendor
+  // zijn gebruikt, exclusief wat al door Haiku of de gebruiker gezet is.
+  const smart = useMemo(() => {
+    const used = new Set([...taken, ...haiku.map((h) => h.toLowerCase())]);
+    return smartSuggestions
+      .filter((name) => !used.has(name.toLowerCase()))
+      .slice(0, 6);
+  }, [smartSuggestions, taken, haiku]);
+
+  // Korte fallback alleen wanneer geen van de bronnen iets oplevert,
+  // zodat de gebruiker toch iets te klikken heeft.
   const generic = useMemo(() => {
-    const usedSet = new Set([
-      ...taken,
-      ...smart.map((s) => s.toLowerCase()),
-    ]);
-    return SUGGESTED_TAG_NAMES.filter(
-      (name) => !usedSet.has(name.toLowerCase()),
-    ).slice(0, 12);
-  }, [taken, smart]);
+    if (haiku.length > 0 || smart.length > 0) return [];
+    const used = new Set(taken);
+    return FALLBACK_TAG_NAMES.filter((name) => !used.has(name.toLowerCase()));
+  }, [taken, haiku, smart]);
 
   function addByName(name: string) {
     const value = name.trim();
@@ -148,11 +135,33 @@ export function TagsManager({
 
   return (
     <div className="space-y-2">
-      {smart.length > 0 ? (
+      {haiku.length > 0 ? (
         <div className="space-y-1.5">
           <p className="flex items-center gap-1 text-xs text-[color:var(--color-muted-foreground)]">
             <Sparkles className="h-3 w-3 text-[color:var(--color-primary)]" />
-            Op basis van eerdere facturen van deze leverancier
+            Voorgesteld voor deze factuur
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {haiku.map((name) => (
+              <button
+                key={`haiku-${name}`}
+                type="button"
+                onClick={() => addByName(name)}
+                disabled={pending}
+                className="inline-flex items-center gap-1 rounded-full border border-[color:var(--color-primary)] bg-[color:var(--color-primary-soft)] px-2 py-0.5 text-xs text-[color:var(--color-primary)] hover:bg-[color:var(--color-primary)] hover:text-[color:var(--color-primary-foreground)] disabled:opacity-60"
+              >
+                <Plus className="h-3 w-3" />
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {smart.length > 0 ? (
+        <div className="space-y-1.5">
+          <p className="text-xs text-[color:var(--color-muted-foreground)]">
+            Eerder gebruikt bij deze leverancier
           </p>
           <div className="flex flex-wrap gap-1.5">
             {smart.map((name) => (
@@ -161,7 +170,7 @@ export function TagsManager({
                 type="button"
                 onClick={() => addByName(name)}
                 disabled={pending}
-                className="inline-flex items-center gap-1 rounded-full border border-[color:var(--color-primary)]/40 bg-[color:var(--color-primary-soft)]/40 px-2 py-0.5 text-xs text-[color:var(--color-primary)] hover:bg-[color:var(--color-primary-soft)] disabled:opacity-60"
+                className="inline-flex items-center gap-1 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-2 py-0.5 text-xs text-[color:var(--color-muted-foreground)] hover:border-[color:var(--color-primary)] hover:text-[color:var(--color-primary)] disabled:opacity-60"
               >
                 <Plus className="h-3 w-3" />
                 {name}
@@ -174,7 +183,7 @@ export function TagsManager({
       {generic.length > 0 ? (
         <div className="space-y-1.5">
           <p className="text-xs text-[color:var(--color-muted-foreground)]">
-            Veelgebruikt in boekhouding
+            Gangbaar
           </p>
           <div className="flex flex-wrap gap-1.5">
             {generic.map((name) => (

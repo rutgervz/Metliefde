@@ -78,6 +78,17 @@ export async function retagInvoice(invoiceId: string): Promise<RetagResult> {
     return { invoiceId, status: "ok", tagsApplied: 0 };
   }
 
+  // Bewaar de suggesties op de factuur zelf zodat ze later opnieuw
+  // getoond kunnen worden in de TagsManager.
+  try {
+    await admin
+      .from("invoices")
+      .update({ haiku_suggested_tags: extraction.suggested_tags })
+      .eq("id", invoiceId);
+  } catch (err) {
+    console.error("haiku_suggested_tags persist faalde", err);
+  }
+
   try {
     await applySuggestedTags(invoiceId, extraction.suggested_tags);
   } catch (err) {

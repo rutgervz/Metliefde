@@ -400,6 +400,7 @@ export type Database = {
           extracted_by: Database["public"]["Enums"]["extraction_source"]
           extraction_confidence: number | null
           gmail_message_id: string | null
+          haiku_suggested_tags: string[] | null
           hold_until: string | null
           hold_waiting_for: string | null
           id: string
@@ -454,6 +455,7 @@ export type Database = {
           extracted_by?: Database["public"]["Enums"]["extraction_source"]
           extraction_confidence?: number | null
           gmail_message_id?: string | null
+          haiku_suggested_tags?: string[] | null
           hold_until?: string | null
           hold_waiting_for?: string | null
           id?: string
@@ -508,6 +510,7 @@ export type Database = {
           extracted_by?: Database["public"]["Enums"]["extraction_source"]
           extraction_confidence?: number | null
           gmail_message_id?: string | null
+          haiku_suggested_tags?: string[] | null
           hold_until?: string | null
           hold_waiting_for?: string | null
           id?: string
